@@ -1,6 +1,5 @@
 Trying out [[https://adventofcode.com/2024/][advent of code]] with clojure in an org mode file.
 
-* Setup
 #+html:<details><summary>Setup</summary>
 #+BEGIN_SRC emacs-lisp :results silent
 (require 'ob-clojure)
@@ -25,9 +24,9 @@ sanity:
         ;; ~/.cache/aoc
         cache-file (fs/file (fs/xdg-cache-home) (format "aoc/%s/%s.txt" year day))]
     (fs/create-dirs (fs/parent cache-file))
-    (format "https://adventofcode.com/%s/day/%s/input" year day)
     ;; (fs/delete cache-file)
     (when-not (fs/exists? cache-file)
+      (shell/sh "touch" (str (fs/strip-ext cache-file) "_example.txt"))
       (spit cache-file
             (:out (shell/sh
                    "curl" (format "https://adventofcode.com/%s/day/%s/input" year day)
@@ -39,10 +38,12 @@ sanity:
 #+end_src
 #+html:</details>
 
-* COMMENT Day N
+*** COMMENT Day N
 
 #+html:<details><summary><h2>Part 1</h2></summary>
 #+begin_src clojure :results silent
+(ns milk.and.cookies)
+(get-input "n")
 ;; todo
 #+end_src
 #+html:</details>
@@ -53,9 +54,9 @@ sanity:
 #+end_src
 #+html:</details>
 
-* Day 1: Historian Hysteria
+*** Day 1: Historian Hysteria
 
-#+html:<details><summary><h2>Part 1</h2></summary>
+#+html:<details><summary>Part 1</summary>
 #+begin_src clojure :results silent
 (ns milk.and.cookies)
 
@@ -70,7 +71,8 @@ sanity:
 #+end_src
 #+html:</details>
 
-#+html:<details><summary><h2>Part 2</h2></summary>
+
+#+html:<details><summary>Part 2</summary>
 #+begin_src clojure :results silent
 (ns milk.and.cookies)
 
@@ -78,9 +80,23 @@ sanity:
       list1 (take-nth 2 nums)
       list2 (take-nth 2 (drop 1 nums))
       freqs (frequencies list2)]
-
   (->> list1
        (map (fn [n] (* n (or (get freqs n) 0))))
        (apply +)))
+#+end_src
+#+html:</details>
+
+*** Day 2: Red-Nosed Reports
+
+#+html:<details><summary>Part 1</summary>
+#+begin_src clojure :results silent
+(ns milk.and.cookies)
+(get-input "2")
+#+end_src
+#+html:</details>
+
+#+html:<details><summary>Part 2</summary>
+#+begin_src clojure :results silent
+;; todo
 #+end_src
 #+html:</details>
