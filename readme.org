@@ -1,0 +1,45 @@
+* Shared
+
+#+BEGIN_SRC emacs-lisp :results silent
+(require 'ob-clojure)
+(setq org-babel-clojure-backend 'cider)
+#+END_SRC
+
+#+begin_src clojure :results silent
+(ns milk.and.cookies
+  (:require [clojure.java.shell :as shell]
+            [clojure.string :as string]
+            [babashka.fs :as fs]))
+
+(def AOC_SESSION (string/trim (:out (shell/sh "bash" "-i" "-c" "echo $AOC_SESSION"))))
+
+(defn get-input [day & split?]
+  (let [year 2024
+        ;; ~/.cache/aoc
+        cache-file (fs/file (fs/xdg-cache-home) (format "aoc/%s/%s.txt" year day))]
+    (fs/create-dirs (fs/parent cache-file))
+    (format "https://adventofcode.com/%s/day/%s/input" year day)
+    ;; (fs/delete cache-file)
+    (when-not (fs/exists? cache-file)
+      (spit cache-file
+            (:out (shell/sh
+                   "curl" (format "https://adventofcode.com/%s/day/%s/input" year day)
+                   "-X" "GET"
+                   "-H" (format "Cookie: session=%s" AOC_SESSION))))) ; https://github.com/wimglenn/advent-of-code-wim/issues/1
+    (if split?
+      (string/split-lines (slurp cache-file))
+      (slurp cache-file))))
+#+end_src
+
+* day 1
+
+#+begin_src clojure :results silent
+
+"arst"
+
+(get-input 1)
+
+,*ns*
+#+end_src
+
+* day 2
