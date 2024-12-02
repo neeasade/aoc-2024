@@ -1,9 +1,16 @@
-* Shared
+Trying out [[https://adventofcode.com/2024/][advent of code]] with clojure in an org mode file.
 
+* Setup
+#+html:<details><summary>Setup</summary>
 #+BEGIN_SRC emacs-lisp :results silent
 (require 'ob-clojure)
 (setq org-babel-clojure-backend 'cider)
 #+END_SRC
+
+sanity:
+#+begin_src clojure :results silent
+(+ 1 2)
+#+end_src
 
 #+begin_src clojure :results silent
 (ns milk.and.cookies
@@ -30,16 +37,50 @@
       (string/split-lines (slurp cache-file))
       (slurp cache-file))))
 #+end_src
+#+html:</details>
 
-* day 1
+* COMMENT Day N
 
+#+html:<details><summary><h2>Part 1</h2></summary>
 #+begin_src clojure :results silent
-
-"arst"
-
-(get-input 1)
-
-,*ns*
+;; todo
 #+end_src
+#+html:</details>
 
-* day 2
+#+html:<details><summary><h2>Part 2</h2></summary>
+#+begin_src clojure :results silent
+;; todo
+#+end_src
+#+html:</details>
+
+* Day 1: Historian Hysteria
+
+#+html:<details><summary><h2>Part 1</h2></summary>
+#+begin_src clojure :results silent
+(ns milk.and.cookies)
+
+(let [nums (map Integer/parseInt (string/split (get-input "1") #"(\n|   )"))
+      list1 (sort (take-nth 2 nums))
+      list2 (sort (take-nth 2 (drop 1 nums)))]
+  (->> (interleave list1 list2)
+       (partition 2)
+       (map (partial apply -))
+       (map abs)
+       (apply +)))
+#+end_src
+#+html:</details>
+
+#+html:<details><summary><h2>Part 2</h2></summary>
+#+begin_src clojure :results silent
+(ns milk.and.cookies)
+
+(let [nums (map Integer/parseInt (string/split (get-input "1") #"(\n|   )"))
+      list1 (take-nth 2 nums)
+      list2 (take-nth 2 (drop 1 nums))
+      freqs (frequencies list2)]
+
+  (->> list1
+       (map (fn [n] (* n (or (get freqs n) 0))))
+       (apply +)))
+#+end_src
+#+html:</details>
