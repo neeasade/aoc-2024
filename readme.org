@@ -140,7 +140,7 @@ Bonus: uiua
 
 #+html:</details>
 
-*** Day 3
+*** Day 3: [[https://adventofcode.com/2024/day/3][Mull It Over]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure :results silent
