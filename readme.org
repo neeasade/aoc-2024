@@ -54,7 +54,7 @@ sanity:
 #+end_src
 #+html:</details>
 
-*** Day 1: Historian Hysteria
+*** Day 1: [[https://adventofcode.com/2024/day/1][Historian Hysteria]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure :results silent
@@ -86,7 +86,7 @@ sanity:
 #+end_src
 #+html:</details>
 
-*** Day 2: Red-Nosed Reports
+*** Day 2: [[https://adventofcode.com/2024/day/2][Red-Nosed Reports]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure :results silent
