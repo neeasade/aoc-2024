@@ -91,7 +91,20 @@ sanity:
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure :results silent
 (ns milk.and.cookies)
-(get-input "2")
+
+(let [levels (get-input "2" true)
+      levels (map #(map Integer/parseInt (string/split % #" ")) levels)]
+  (->> levels
+       (remove (fn [level]
+                 ;; increasing/decreasing, set cast for same floor case
+                 (not (or (= (sort > (set level)) level)
+                          (= (sort < (set level)) level)))))
+       (remove (fn [level]
+                 (->> (partition 2 1 level)
+                      (map (fn [[cur next]]
+                             (<= 1 (abs (- cur next)) 3)))
+                      (some false?))))
+       (count)))
 #+end_src
 #+html:</details>
 
