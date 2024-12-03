@@ -17,12 +17,12 @@ sanity:
             [clojure.string :as string]
             [babashka.fs :as fs]))
 
-(def AOC_SESSION (string/trim (:out (shell/sh "bash" "-i" "-c" "echo $AOC_SESSION"))))
-
-(defn get-input [day & split?]
+(defn get-input [day]
+  ;; ~/.cache/aoc
   (let [year 2024
-        ;; ~/.cache/aoc
-        cache-file (fs/file (fs/xdg-cache-home) (format "aoc/%s/%s.txt" year day))]
+        cache-file (fs/file (fs/xdg-cache-home) (format "aoc/%s/%s.txt" year day))
+        ;; https://github.com/wimglenn/advent-of-code-wim/issues/1
+        session (string/trim (:out (shell/sh "bash" "-i" "-c" "echo $AOC_SESSION")))]
     (fs/create-dirs (fs/parent cache-file))
     ;; (fs/delete cache-file)
     (when-not (fs/exists? cache-file)
@@ -31,10 +31,8 @@ sanity:
             (:out (shell/sh
                    "curl" (format "https://adventofcode.com/%s/day/%s/input" year day)
                    "-X" "GET"
-                   "-H" (format "Cookie: session=%s" AOC_SESSION))))) ; https://github.com/wimglenn/advent-of-code-wim/issues/1
-    (if split?
-      (string/split-lines (slurp cache-file))
-      (slurp cache-file))))
+                   "-H" (format "Cookie: session=%s" session)))))
+    (slurp cache-file)))
 #+end_src
 #+html:</details>
 
