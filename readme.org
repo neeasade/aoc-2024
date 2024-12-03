@@ -1,4 +1,4 @@
-It's [[https://adventofcode.com/2024/][advent of code]]. Have some milk and cookies: 🍪🥛🍪🍪
+It's [[https://adventofcode.com/2024/][advent of code]] in clojure. Have some milk and cookies: 🍪🥛🍪🍪
 
 #+html:<details><summary>Setup</summary>
 #+BEGIN_SRC emacs-lisp :results silent
@@ -69,8 +69,15 @@ sanity:
        (map abs)
        (apply +)))
 #+end_src
-#+html:</details>
 
+Bonus: uiua
+
+#+begin_src uiua
+# Uiua 0.14.0-dev.5
+&fras "1.txt"
+/+≡⌵-⊢⟜⊣≡⍆⍉⊜(⊜⋕⊸≠@ )⊸≠@\n
+#+end_src
+#+html:</details>
 
 #+html:<details><summary>Part 2</summary>
 #+begin_src clojure :results silent
