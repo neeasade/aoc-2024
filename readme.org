@@ -130,13 +130,12 @@ sanity:
 (let [levels (get-input "2" true)
       levels (map #(map Integer/parseInt (string/split % #" ")) levels)]
   (->> levels
-       (filter
-        (fn [level]
-          (or (valid-level? level)    ; already valid?
-              ;; dampener time
-              (some valid-level?
-                    (map #(drop-nth % level)
-                         (-> level count range))))))
+       (filter (fn [level]
+                 (or (valid-level? level)    ; already valid?
+                     ;; dampener time
+                     (some valid-level?
+                           (map #(drop-nth % level)
+                                (-> level count range))))))
        (count)))
 
 #+end_src
