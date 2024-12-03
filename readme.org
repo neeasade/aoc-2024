@@ -1,4 +1,4 @@
-Trying out [[https://adventofcode.com/2024/][advent of code]] with clojure in an org mode file.
+It's [[https://adventofcode.com/2024/][advent of code]]. Have some milk and cookies: 🍪🥛🍪🍪
 
 #+html:<details><summary>Setup</summary>
 #+BEGIN_SRC emacs-lisp :results silent
