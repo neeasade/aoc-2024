@@ -110,6 +110,35 @@ sanity:
 
 #+html:<details><summary>Part 2</summary>
 #+begin_src clojure :results silent
-;; todo
+(ns milk.and.cookies)
+
+(defn valid-level? [level]
+  (and
+   ;; increasing/decreasing
+   (or (= (sort > (set level)) level)
+       (= (sort < (set level)) level))
+   ;; floor transition in range
+   (not (->> (partition 2 1 level)
+             (map (fn [[cur next]]
+                    (<= 1 (abs (- cur next)) 3)))
+             (some false?)))))
+
+;; https://stackoverflow.com/a/24553906
+(defn drop-nth [n coll]
+  (keep-indexed #(if (not= %1 n) %2) coll))
+
+(let [levels (get-input "2" true)
+      levels (map #(map Integer/parseInt (string/split % #" ")) levels)]
+  (->> levels
+       (filter
+        (fn [level]
+          (or (valid-level? level)    ; already valid?
+              ;; dampener time
+              (some valid-level?
+                    (map #(drop-nth % level)
+                         (-> level count range))))))
+       (count)))
+
 #+end_src
+
 #+html:</details>
