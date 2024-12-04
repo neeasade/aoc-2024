@@ -165,3 +165,34 @@ Bonus: uiua
      :sum)
 #+end_src
 #+html:</details>
+
+*** Day 4: [[https://adventofcode.com/2024/day/4][Ceres Search]]
+
+#+html:<details><summary>Part 1</summary>
+#+begin_src clojure :results silent
+(let [input (string/split-lines (get-input "4"))
+      h (count input)
+      w (count (first input))
+      dirs (for [x [-1 0 1]
+                 y [-1 0 1]]
+             [x y])
+      look (fn [[x y]] (-> input (get x []) (get y nil)))
+      move (fn [[x y] [xx yy]] [(+ x xx) (+ y yy)])
+      peek (fn [coord dir] (map look (reductions move coord (repeat 3 dir))))]
+  (->> (for [x (range w)
+             y (range h)]
+         (for [dir dirs]
+           (when (= (look [x y]) \X)
+             (= (peek [x y] dir)
+                (seq "XMAS")))))
+       (flatten)
+       (filter true?)
+       (count)))
+#+end_src
+#+html:</details>
+
+#+html:<details><summary>Part 2</summary>
+#+begin_src clojure :results silent
+;; todo
+#+end_src
+#+html:</details>
