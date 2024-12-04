@@ -193,6 +193,19 @@ Bonus: uiua
 
 #+html:<details><summary>Part 2</summary>
 #+begin_src clojure :results silent
-;; todo
+(let [input (string/split-lines (get-input "4"))
+      h (count input)
+      w (count (first input))
+      corner1 [[-1 -1] [1 1]]
+      corner2 [[-1 1] [1 -1]]
+      move (fn [[x y] [xx yy]] [(+ x xx) (+ y yy)])
+      look (fn [[x y]] (-> input (get x []) (get y nil)))]
+  (->> (for [x (range w)
+             y (range h)
+             :when (= (look [x y]) \A)]
+         (and (= (set "SM") (set (map #(-> % (move [x y]) look) corner1)))
+              (= (set "SM") (set (map #(-> % (move [x y]) look) corner2)))))
+       (filter true?)
+       (count)))
 #+end_src
 #+html:</details>
