@@ -180,11 +180,11 @@ Bonus: uiua
       move (fn [[x y] [xx yy]] [(+ x xx) (+ y yy)])
       peek (fn [coord dir] (map look (reductions move coord (repeat 3 dir))))]
   (->> (for [x (range w)
-             y (range h)]
+             y (range h)
+             :when (= (look [x y]) \X)]
          (for [dir dirs]
-           (when (= (look [x y]) \X)
-             (= (peek [x y] dir)
-                (seq "XMAS")))))
+           (= (peek [x y] dir)
+              (seq "XMAS"))))
        (flatten)
        (filter true?)
        (count)))
