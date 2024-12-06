@@ -296,26 +296,23 @@ Bonus: uiua
 
 (defn check-board [new-block]
   (let [blocks (conj (:blocks board) new-block)
-        dirs [[0 -1] [1 0] [0 1] [-1 0]]
-        tolerance 10000]
-    (loop [position (first (:position board))
-           dir-index (second (:position board))
-           moved 0]
-      (let [dir-index (mod dir-index (count dirs))
+        dirs [[0 -1] [1 0] [0 1] [-1 0]]]
+    (loop [ref (:position board)
+           seen #{}]
+      (let [[position dir-index] ref
+            dir-index (mod dir-index (count dirs))
             [x y] position
             [x- y-] (get dirs dir-index)
             next [(+ x x-) (+ y y-)]
             within-board? (and (<= 0 (first next) (:width board))
                                (<= 0 (second next) (:height board)))]
         (cond
-          (and (> moved 0) (= [position dir-index] (:position board))) true
-          (> moved tolerance) true
+          (seen ref) true
           (not within-board?) nil
-          (blocks next) (recur position (inc dir-index) (inc moved))
-          :else (recur next dir-index (inc moved)))))) )
+          (blocks next) (recur [position (inc dir-index)] (conj seen ref))
+          :else (recur [next dir-index] (conj seen ref)))))) )
 
+;; count the looping boards
 (count (remove nil? (pmap check-board (:blanks board))))
-
-
 #+end_src
 #+html:</details>
