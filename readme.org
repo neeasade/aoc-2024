@@ -279,6 +279,43 @@ Bonus: uiua
 
 #+html:<details><summary>Part 2</summary>
 #+begin_src clojure :results silent
-;; todo
+(def board
+  (let [input (string/split-lines (get-input "6"))
+        look (fn [[x y]] (-> input (get y []) (get x nil)))]
+    (-> (reduce (fn [state coord]
+                  (condp = (look coord)
+                    \. (update state :blanks conj coord)
+                    \# (update state :blocks conj coord)
+                    (update state :position (constantly [coord (string/index-of "^>v<" (look coord))]))))
+                {:blocks #{} :blanks #{} :position nil}
+                (for [x (range (count (first input)))
+                      y (range (count input))]
+                  [x y]))
+        (assoc :width (count (first input)))
+        (assoc :height (count input)))))
+
+(defn check-board [new-block]
+  (let [blocks (conj (:blocks board) new-block)
+        dirs [[0 -1] [1 0] [0 1] [-1 0]]
+        tolerance 10000]
+    (loop [position (first (:position board))
+           dir-index (second (:position board))
+           moved 0]
+      (let [dir-index (mod dir-index (count dirs))
+            [x y] position
+            [x- y-] (get dirs dir-index)
+            next [(+ x x-) (+ y y-)]
+            within-board? (and (<= 0 (first next) (:width board))
+                               (<= 0 (second next) (:height board)))]
+        (cond
+          (and (> moved 0) (= [position dir-index] (:position board))) true
+          (> moved tolerance) true
+          (not within-board?) nil
+          (blocks next) (recur position (inc dir-index) (inc moved))
+          :else (recur next dir-index (inc moved)))))) )
+
+(count (remove nil? (pmap check-board (:blanks board))))
+
+
 #+end_src
 #+html:</details>
