@@ -261,19 +261,6 @@ Bonus: uiua
         nil (inc (count seen))          ; done!
         \# (recur (inc dir) position seen)
         (recur dir next (conj seen position))))))
-
-;; initially was building state like this:
-(comment
-  [obstacles position]
-  (reduce (fn [[obs pos] coord]
-            (condp = (look coord)
-              \. [obs pos]
-              \# [(conj obs coord) pos]
-              [obs coord]))
-          [#{} nil]
-          (for [x (range (count (first input)))
-                y (range (count input))]
-            [x y])))
 #+end_src
 #+html:</details>
 
