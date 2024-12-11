@@ -25,7 +25,11 @@ sanity:
     (fs/create-dirs (fs/parent cache-file))
     ;; (fs/delete cache-file)
     (when-not (fs/exists? cache-file)
-      (shell/sh "touch" (str (fs/strip-ext cache-file) "_example.txt"))
+      (spit (str (fs/strip-ext cache-file) "_example.txt")
+            (->> (format "curl 'https://adventofcode.com/%s/day/%s' | pup ':contains(\"example\") + pre > code text{}'" year day)
+                 (shell/sh "sh" "-c")
+                 (:out)))
+
       (spit cache-file
             (:out (shell/sh
                    "curl" (format "https://adventofcode.com/%s/day/%s/input" year day)
@@ -458,6 +462,10 @@ Bonus: uiua
        ;; (println)
        ))
 #+end_src
+
+#+RESULTS:
+: 369
+
 #+html:</details>
 
 #+html:<details><summary>Part 2</summary>
@@ -615,3 +623,54 @@ Bonus: uiua
 
 #+RESULTS:
 : (776 1657)
+
+*** Day 11: [[https://adventofcode.com/2024/day/11][Plutonian Pebbles]]
+
+#+html:<details><summary>Part 1</summary>
+#+begin_src clojure
+(defn step [n]
+  (cond (zero? n) [1]
+        (even? (-> n str count))
+        (let [c (-> n str count (/ 2))]
+          (map (comp Integer/parseInt (partial apply str))
+               (split-at c (str n))))
+        :else [(* n 2024)]))
+
+(count
+ (reduce
+  (fn [acc _] (mapcat step acc))
+  (map Integer/parseInt (re-seq #"\d+" (get-input "11")))
+  (range 25)))
+#+end_src
+
+#+RESULTS:
+: 199982
+
+#+html:</details>
+
+#+html:<details><summary>Part 2</summary>
+#+begin_src clojure
+
+(defn step [n]
+  (if (zero? n)
+    1
+    (let [c (inc (int (Math/floor (Math/log10 n))))]
+      (if (even? c)
+        (map (comp Integer/parseInt (partial apply str)) (split-at (/ c 2) (str n)))
+        (* 2024)))))
+
+(count
+ (loop [state (map Integer/parseInt (re-seq #"\d+"
+                                            ;; "125 17"
+                                            (get-input "11")
+                                            ))
+        times 75]
+   (if (zero? times)
+     state
+     (recur (mapcat step state) (dec times)))))
+
+
+
+;; todo
+#+end_src
+#+html:</details>
