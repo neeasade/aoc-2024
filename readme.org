@@ -9,14 +9,13 @@ It's [[https://adventofcode.com/2024/][advent of code]] in clojure. Have some mi
 sanity:
 #+begin_src clojure :results silent
 (+ 1 2)
-#+end_src
-
-#+begin_src clojure :results silent
 (ns user
   (:require [clojure.java.shell :as shell]
             [clojure.string :as string]
             [babashka.fs :as fs]))
+#+end_src
 
+#+begin_src clojure :results silent
 (defn get-input [day]
   ;; ~/.cache/aoc
   (let [year 2024
@@ -431,6 +430,56 @@ Bonus: uiua
 [2 7]
 
 {\a ([8 4] [5 5] )}
+
+;; todo
+#+end_src
+#+html:</details>
+
+#+html:<details><summary>Part 2</summary>
+#+begin_src clojure :results silent
+
+#+end_src
+#+html:</details>
+
+*** Day 9: [[https://adventofcode.com/2024/day/9][Disk Fragmenter]]
+
+
+#+html:<details><summary>Part 1</summary>
+#+begin_src clojure :results silent
+;; naive
+(defn read-disk [input-key]
+  (loop [nums (map Integer/parseInt (re-seq #"\d" (get-input input-key)))
+         id 0
+         block? true
+         result []]
+    (if (empty? nums)
+      result
+      (recur (drop 1 nums)
+             (if block? id (inc id))
+             (not block?)
+             (concat result (repeat (first nums) (if block? id nil)))))))
+
+
+;; spent some time thinking about a clever way to check
+(let [disk (read-disk "9")
+      length (count (filter number? disk))
+      ]
+
+  (->> (loop [disk disk]
+         (if (= (count (first (split-with number? disk))) length)
+           disk
+           (let [[p1 p2] (split-with number? disk)]
+             (recur (concat p1 (list (last p2)) (->> p2 (drop 1) (drop-last 1)))))))
+       ;; (apply str)
+       (reduce (fn [[i sum] id]
+                 [(inc i) (+ sum (* i id))])
+               [0 0])
+       (second)
+       )
+
+  ;; input
+  )
+
 
 ;; todo
 #+end_src
