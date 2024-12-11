@@ -624,6 +624,8 @@ Bonus: uiua
 #+RESULTS:
 : (776 1657)
 
+#+html:</details>
+
 *** Day 11: [[https://adventofcode.com/2024/day/11][Plutonian Pebbles]]
 
 #+html:<details><summary>Part 1</summary>
