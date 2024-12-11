@@ -441,3 +441,75 @@ Bonus: uiua
 ;; todo
 #+end_src
 #+html:</details>
+
+
+*** Day 10: [[https://adventofcode.com/2024/day/10][Hoof It]]
+
+#+html:<details><summary>Part 1</summary>
+#+begin_src clojure :results silent
+(def grid (->> (get-input "10")
+               (string/split-lines)
+               (map (partial re-seq #"\d"))
+               (map (fn [row] (vec (map Integer/parseInt row))))
+               vec))
+
+(defn next-coord [[x y] [xx yy]] [(+ x xx) (+ y yy)])
+(defn look [[x y]] (-> grid (get y []) (get x nil)))
+
+(defn move [coord]
+  (let [looking-at (look coord)]
+    (if (= looking-at 9)
+      (apply str coord)
+      (remove nil?
+              (for [dir [[0 1] [0 -1] [-1 0] [1 0]]]
+                (let [next (next-coord coord dir)
+                      next-value (look next)]
+                  (when (= (inc looking-at) next-value)
+                    (move next))))))))
+
+(->> (for [x (range (count (first grid)))
+           y (range (count grid))
+           :when (= 0 (look [x y]))]
+       [x y])
+     (map (fn [zero-coord]
+            (->> (move zero-coord)
+                 (flatten)
+                 (distinct)
+                 (count))))
+     (apply +))
+#+end_src
+#+html:</details>
+
+#+html:<details><summary>Part 2</summary>
+#+begin_src clojure :results silent
+(def grid (->> (get-input "10")
+               (string/split-lines)
+               (map (partial re-seq #"\d"))
+               (map (fn [row] (vec (map Integer/parseInt row))))
+               vec))
+
+(defn next-coord [[x y] [xx yy]] [(+ x xx) (+ y yy)])
+(defn look [[x y]] (-> grid (get y []) (get x nil)))
+
+(defn move [coord]
+  (let [looking-at (look coord)]
+    (if (= looking-at 9)
+      true
+      (remove nil?
+              (for [dir [[0 1] [0 -1] [-1 0] [1 0]]]
+                (let [next (next-coord coord dir)
+                      next-value (look next)]
+                  (when (= (inc looking-at) next-value)
+                    (move next))))))))
+
+(->> (for [x (range (count (first grid)))
+           y (range (count grid))
+           :when (= 0 (look [x y]))]
+       [x y])
+     (map (fn [zero-coord]
+            (->> (move zero-coord)
+                 (flatten)
+                 (count))))
+     (apply +))
+#+end_src
+#+html:</details>
