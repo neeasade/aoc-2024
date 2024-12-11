@@ -374,64 +374,44 @@ Bonus: uiua
 #+begin_src clojure :results silent
 (require '[clojure.math.combinatorics :as combo])
 
-;; checkpoint
-
-
-(let [input (string/split-lines (get-input "8_example"))
+(let [input (string/split-lines (get-input "8"))
       w (count (first input))
       h (count input)
       look (fn [[x y]] (-> input (get y []) (get x nil)))
-      within? (fn [[x y]] (and (<= 0 x w) (<= 0 y h)))
+      within? (fn [[x y]] (and (<= 0 x (dec w)) (<= 0 y (dec h))))
       antinodes (fn [coords]
-                  (let [[[x y] [xx yy]] (sort-by (juxt first second) coords)
-                        xdiff (abs (- xx x))
-                        ydiff (abs (- yy y))
-                        ]
-                    (list
-                     ;; (sort-by (juxt first second) coords)
-                     ;; [x y] [xx yy]
-                     [(- x xdiff) (- y ydiff)]
-                     [(+ xx xdiff) (+ yy ydiff)])))
+                  (let [[[x1 y1] [x2 y2]] coords
+                        distance (Math/round
+                                  (Math/sqrt (+ (* (- x2 x1) (- x2 x1))
+                                                (* (- y2 y1) (- y2 y1)))))]
+                    ;; port of https://stackoverflow.com/a/7741655
+                    [[(+ x2 (* distance (/ (- x2 x1) distance)))
+                      (+ y2 (* distance (/ (- y2 y1) distance)))]
+                     [(- x1 (* distance (/ (- x2 x1) distance)))
+                      (- y1 (* distance (/ (- y2 y1) distance)))]]
+                    ))
       antennae (atom {})
       ;; oof
       _ (doseq [x (range w)
                 y (range h)
-                :when (not
-                       (or
-                        (= (look [x y]) \.)
-                        (= (look [x y]) \#)
-                        )
-                       )]
+                :when (not (or (= (look [x y]) \.)
+                               (= (look [x y]) \#)))]
           (swap! antennae update (look [x y]) #(conj % [x y])))]
 
   (->> @antennae
        (mapcat (fn [[_ coords]]
                  (->> (combo/combinations coords 2)
-                      (mapcat (fn [coords] (filter within? (antinodes coords))))
-                      )))
-       ;; (flatten)
+                      (mapcat (fn [coords] (filter within? (antinodes coords)))))))
        (set)
        (count)
-       )
-  ;; input
-  ;; (look [1 1])
-  )
 
-(([4 3] [5 5]) [3 1] [6 3])
-
-([4 3] [5 5] [3 1] [6 3])
-
-#{[6 3] [0 2] [3 1] [2 6]}
-
-#{[10 5] [11 2] [7 7] [2 3] [10 8] [12 5] [4 2] [9 3] [6 5] [1 5] [12 4] [6 4] [0 7] [3 6] [9 2] [10 4] [3 1]}
-
-[[13 9] [3 -1]]
-
-[2 7]
-
-{\a ([8 4] [5 5] )}
-
-;; todo
+       ;; debug print
+       ;; (reduce (fn [grid anti-coord] (update-in grid (reverse anti-coord) (constantly \#)))
+       ;;         (mapv (comp vec seq) input))
+       ;; (map (partial apply str))
+       ;; (string/join "\n")
+       ;; (println)
+       ))
 #+end_src
 #+html:</details>
 
