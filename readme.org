@@ -884,3 +884,74 @@ CLOSED: [2024-12-15 Sun 07:34]
 1373
 #+end_src
 #+html:</details>
+
+*** Day 15:
+
+#+html:<details><summary>Part 1</summary>
+#+begin_src clojure
+(require '[lib.grid :as grid])
+
+(defn ->dir [c]
+  (condp = c
+    \> [1 0]
+    \< [-1 0]
+    \^ [0 -1]
+    \v [0 1]))
+
+(defn shift [grid coord1 coord2]
+  (-> grid
+      (grid/gassoc coord1 (grid/look grid coord2))
+      (grid/gassoc coord2 (grid/look grid coord1))))
+
+;; https://stackoverflow.com/a/30928487
+(defn take-while+
+  [pred coll]
+  (lazy-seq
+   (when-let [[f & r] (seq coll)]
+     (if (pred f)
+       (cons f (take-while+ pred r))
+       [f]))))
+
+(defn dir-look [grid pos dir]
+  (->> pos
+       (iterate (fn [coord] (mapv + coord (->dir dir))))
+       (take-while+ (fn [c] (not (#{\# \.} (grid/look grid c)))))))
+
+(defn blocked? [grid pos dir]
+  (every? (fn [c] (#{\@ \O \#} (grid/look grid c)))
+          (dir-look grid pos dir)))
+
+(defn move [grid coords]
+  (reduce (fn [g pair]
+            (apply shift g pair))
+          grid
+          (reverse (partition 2 1 coords))))
+
+(let [[grid moves] (string/split (get-input "15") #"\n\n")
+      moves (map first (re-seq #"[v^<>]" moves))
+      grid (grid/parse grid)]
+
+  ;; one move
+  #_(-> grid
+        (dir-look position \v)
+        (->> (move grid))
+        (grid/gprint))
+
+  (println "starting!")
+  (as-> grid it
+    (reduce (fn [g dir]
+              (let [pos (first (grid/points g (= \@ (grid/look g [x y]))))]
+                (if (blocked? g pos dir) g
+                    (-> g
+                        (dir-look pos dir)
+                        (->> (move g))))))
+            it moves)
+    (grid/points it (= \O (grid/look it [x y])))
+    (map (fn [[x y]] (+ x (* 100 y))) it)
+    (reduce + it)))
+#+end_src
+
+#+RESULTS:
+: 1505963
+
+#+html:</details>

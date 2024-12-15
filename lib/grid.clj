@@ -19,10 +19,10 @@
         [~'x ~'y]))))
 
 (defn gassoc [grid coord value]
-  (assoc-in grid `[:grid ~@coord] value))
+  (assoc-in grid `[:grid ~@(reverse coord)] value))
 
 (defn gupdate [grid coord f]
-  (update-in grid `[:grid ~@coord] f ))
+  (update-in grid `[:grid ~@(reverse coord)] f ))
 
 (defn gmap [grid f]
   (reduce (fn [g point]
