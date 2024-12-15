@@ -5,7 +5,7 @@ It's [[https://adventofcode.com/2024/][advent of code]] in clojure. Have some mi
 (require 'ob-clojure)
 (setq org-babel-clojure-backend 'cider)
 
-(defun ns/insert-block ()
+(defun ns/insert-aoc-block ()
   (interactive)
   (insert
    (format
