@@ -11,28 +11,22 @@
      :grid grid}))
 
 (defmacro points
+  "Get all the points in the grid. Optionally takes an anaphoric argument for
+  the :when condition (bound: x y g)"
   ([grid] `(points ~grid true))
   ([grid condition]
-   `(let [g# ~grid]
-      (for [~'x (range (:width g#))
-            ~'y (range (:height g#))
+   `(let [~'g ~grid]
+      (for [~'x (range (:width ~'g))
+            ~'y (range (:height ~'g))
             :when ~condition]
         [~'x ~'y]))))
 
-(defn look [grid [x y]]
-  (-> (:grid grid) (nth y []) (nth x nil)))
-
-(defn gassoc [grid coord value]
-  (assoc-in grid `[:grid ~@(reverse coord)] value))
-
-(defn gupdate [grid coord f]
-  (update-in grid `[:grid ~@(reverse coord)] f ))
-
-(defn gmap [grid f]
-  (reduce (fn [g point]
-            (gupdate g point f))
-          grid
-          (points grid)))
+(defn look
+  ([grid [x y]] (-> (:grid grid) (nth y []) (nth x nil)))
+  ([grid [x y] val]
+   ;; return value or nil
+   (let [looking-for (if (coll? val) (set val) (set [val]))]
+     (looking-for (look grid [x y])))))
 
 (defn within? [grid [x y]]
   (and (< -1 x (:width grid))
@@ -40,6 +34,18 @@
 
 (defn wrap [{:keys [width height]} [x y]]
   [(mod x width) (mod y height)])
+
+(defn gassoc [grid value & coords]
+  (reduce (fn [g coord]
+            (assoc-in g `[:grid ~@(reverse coord)] value))
+          grid coords))
+
+(defn gupdate [grid f & coords]
+  (reduce (fn [g coord]
+            (update-in g `[:grid ~@(reverse coord)] f))
+          grid coords))
+
+(defn gmap [grid f] (gupdate f (points grid)))
 
 (defn gprint [grid]
   ;; pretty
@@ -58,20 +64,37 @@
   ([grid coord neighbors]
    (let [coords (map (fn [i] (get [[-1 -1] [0 -1] [1 -1] [-1 0] [0 0] [1 0] [-1 1] [0 1] [1 1]] (dec i)))
                      (map (comp Integer/parseInt str) (seq (str neighbors))))]
-     (map (fn [dir]
-            ((juxt identity (partial look grid))
-             (mapv + coord dir)))
-          coords)))
+     (keep (fn [dir]
+             (let [c (mapv + coord dir)]
+               (when (within? grid c)
+                 [c (look grid c)])))
+           coords)))
   ([grid coord grabs look-val]
    (keep (fn [[coord v]]
-           (when (= v look-val)
-             coord))
+           (let [looking-for (if (coll? look-val)
+                               (set look-val)
+                               (set [look-val]))]
+             (and (looking-for v) coord)))
          (neighbors grid coord grabs))))
 
 (comment
-  (neighbors (parse "123\n456\n789") [1 1] 123)
+  (neighbors (parse "123\n456\n789") [0 0] \2)
 
-  (neighbors (parse "123\n456\n789") [1 1] 123 \2)
+  (look (parse "123\n456\n789") [0 0] \1)
+
+
+  (neighbors (parse "123\n456\n789") [1 1] 123 #{\2 \3})
+
+  (neighbors (parse "123\n456\n789") [1 1] 2468 \2)
+
+  (points (parse "123\n456\n789"))
+
+  (points (parse "123\n456\n789") (= (look g [x y]) \2))
+
+  (gmap (parse "123\n456\n789") (comp parse-long str))
+
+  ;; (points  (= (look g [x y]) \2))
+
 
   (map (partial look (parse "123\n456\n789"))
        (points (parse "123\n456\n789")))
@@ -80,3 +103,5 @@
     (points grid
             (even?
              (parse-long (str (look grid [x y])))))))
+
+
