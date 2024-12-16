@@ -885,7 +885,7 @@ CLOSED: [2024-12-15 Sun 07:34]
 #+end_src
 #+html:</details>
 
-*** Day 15:
+*** TODO Day 15:
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -900,8 +900,8 @@ CLOSED: [2024-12-15 Sun 07:34]
 
 (defn shift [grid coord1 coord2]
   (-> grid
-      (grid/gassoc coord1 (grid/look grid coord2))
-      (grid/gassoc coord2 (grid/look grid coord1))))
+      (grid/gassoc (grid/look grid coord2) coord1)
+      (grid/gassoc (grid/look grid coord1) coord2)))
 
 ;; https://stackoverflow.com/a/30928487
 (defn take-while+
@@ -954,4 +954,152 @@ CLOSED: [2024-12-15 Sun 07:34]
 #+RESULTS:
 : 1505963
 
+#+html:</details>
+
+#+html:<details><summary>Part 2</summary>
+#+begin_src clojure
+;; in progress
+(require '[lib.grid :as grid])
+(require '[clojure.zip :as zip])
+
+(defn ->dir [c]
+  (condp = c
+    \> [1 0]
+    \< [-1 0]
+    \^ [0 -1]
+    \v [0 1]))
+
+(defn box-coords [grid dir box-pos]
+  )
+
+(defn shift [grid coord1 coord2]
+  (-> grid
+      (grid/gassoc (grid/look grid coord2) coord1)
+      (grid/gassoc (grid/look grid coord1) coord2)))
+
+;; node is a coord
+
+;; ##...[][]...##
+;; ##...@[]....##
+
+;; will only apply in the v^ case
+(defn box-zipper [grid coord dir]
+  (zip/zipper
+   ;; branch? is a fn that, given a node, returns true if can have children, even if it currently doesn't.
+   (fn [node]
+     (->> (neighbors grid node 123)
+          (map second)
+          (every? #{\[ \]})))
+   ;; children is a fn that, given a branch node, returns a seq of its children.
+   (fn [node]
+     (let [sides [[1 0] [0 0] [-1 0]]
+           coords (map (fn [side] (mapv + node dir side)) sides)]
+       coords
+       ;; (map (partial grid/look grid) coords)
+       ))
+
+   ;; make-node is a fn that, given an existing node and a seq of children, returns a new branch node with the supplied children.
+   (fn [node _] node)
+
+   ;; root is the root node.
+   coord
+   ))
+
+(defn read-region [coord]
+  (let [grid (grid/parse
+              "##...[][]...##
+##...@[]....##")
+        ]
+    (->> (box-zipper grid [6 1] [0 -1])
+         (iterate zip/next)
+         (take-while #(not (zip/end? %)))
+         (take 10)
+         (map zip/node)
+         ;; (map first)
+         )
+
+    )
+
+(box-zipper)
+
+;; https://stackoverflow.com/a/30928487
+(defn take-while+
+  [pred coll]
+  (lazy-seq
+   (when-let [[f & r] (seq coll)]
+     (if (pred f)
+       (cons f (take-while+ pred r))
+       [f]))))
+
+(defn dir-look [grid pos dir]
+  (->> pos
+       (iterate (fn [coord] (mapv + coord (->dir dir))))
+       (take-while+ (fn [c] (not (#{\# \.} (grid/look grid c)))))))
+
+(defn blocked? [grid pos dir]
+  (every? (fn [c] (#{\@ \O \#} (grid/look grid c)))
+          (dir-look grid pos dir)))
+
+(defn move [grid coords]
+  (reduce (fn [g pair]
+            (apply shift g pair))
+          grid
+          (reverse (partition 2 1 coords))))
+
+(let [[grid moves] (string/split (get-input "15") #"\n\n")
+      moves (map first (re-seq #"[v^<>]" moves))
+      grid (grid/parse grid)]
+
+  ;; one move
+  #_(-> grid
+        (dir-look position \v)
+        (->> (move grid))
+        (grid/gprint))
+
+  (println "starting!")
+  (as-> grid it
+    (reduce (fn [g dir]
+              (let [pos (first (grid/points g (= \@ (grid/look g [x y]))))]
+                (if (blocked? g pos dir) g
+                    (-> g
+                        (dir-look pos dir)
+                        (->> (move g))))))
+            it moves)
+    (grid/points it (= \O (grid/look it [x y])))
+    (map (fn [[x y]] (+ x (* 100 y))) it)
+    (reduce + it)))
+
+#+end_src
+#+html:</details>
+
+
+*** Day 16
+
+#+html:<details><summary>Part 1</summary>
+#+begin_src clojure
+
+;; in progress
+(require '[clojure.zip :as zip])
+(require '[clojure.set :as set])
+(require '[lib.grid :as grid])
+
+
+(let [grid (grid/parse (get-input "16_example"))
+      start (first (grid/points grid (= \S (grid/look g [x y]))))]
+  (loop [looking-at [[start []]]
+         visited #{}]
+    (when (peek looking-at)
+      (let [[pos path] (peek looking-at)]
+        (prn visited)
+        (if (grid/look grid pos \E)
+          path
+          (recur (apply conj (pop looking-at)
+                        (->> (grid/neighbors grid pos 2468 \.)
+                             (remove visited)
+                             (map (fn [new] [new (conj path pos)]))))
+                 (conj visited pos)))))
+
+    ))
+;; in progress
+#+end_src
 #+html:</details>
