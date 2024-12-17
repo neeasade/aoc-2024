@@ -1,5 +1,36 @@
 It's [[https://adventofcode.com/2024/][advent of code]] in clojure. Have some milk and cookies: 🍪🥛🍪🍪
 
+#+begin_src sh :exports results :results output
+session=$(bash -ic 'echo $AOC_SESSION' 2>/dev/null)
+
+curl "https://adventofcode.com/2024/" -X GET -H "Cookie: session=${session}" | \
+     grep aria-label | \
+     awk '!/star/{sub("*<","<"); sub("*<","<")} 1'  | \
+     awk '/calendar-complete/{sub("*<","<")} 1'  | \
+     sed -E -e 's#<span[^>]+>##g' -e 's#</span>##g' -e 's#</a>##' -e 's#<a[^>]+>##g' -e 's#<i>##g' -e 's#</i>##g' | \
+     sed -e 's#&quot;#"#' -e 's#&gt;#>#g' -e 's#&lt;#<#g'
+#+end_src
+
+#+RESULTS:
+#+begin_example
+       .--'~ ~ ~|        .-' *       \  /     '-.   1 **
+    .--'~  ,* ~ |        |  >o<   \_\_\|_/__/   |   2 **
+.---': ~ '(~), ~|        | >@>O< o-_/.()__------|   3 **
+|@..#'. ~ " ' ~ |        |>O>o<@< \____       .'|   4 **
+|_.~._#'.. ~ ~ *|        | _| |_    ..\_\_ ..'* |   5 *
+| ||| @ @#'''...|        |...     .'  '.'''../..|   6 **
+|@~~~@@#@      @|        |/\ ''.  |    |   -/  :|   7 **
+|~~..--. _____  |        |* /~\ '.|    | - /  .'|   8 *
+'---'  |        |        |        |    |        |   9
+       |------- |        |   /\ .'|    |'''~~~~~|  10 **
+       |.......||        |/\ ..'  |    |   . .  |  11 *
+       |        |        |        |    |        |  12
+       |        |        |        |    |        |  13
+       |        |        |        |    |        |  14
+       |.  ''.  |        |.  :::::|    |──┬┴┴┴┬─|  15 *
+       |        |        |        |    |        |  16
+#+end_example
+
 #+html:<details><summary>Setup</summary>
 #+BEGIN_SRC emacs-lisp :results silent
 (require 'ob-clojure)
