@@ -16,19 +16,20 @@ curl "https://adventofcode.com/2024/" -X GET -H "Cookie: session=${session}" | \
        .--'~ ~ ~|        .-' *       \  /     '-.   1 **
     .--'~  ,* ~ |        |  >o<   \_\_\|_/__/   |   2 **
 .---': ~ '(~), ~|        | >@>O< o-_/.()__------|   3 **
-|@..#'. ~ " ' ~ |        |>O>o<@< \____       .'|   4 **
-|_.~._#'.. ~ ~ *|        | _| |_    ..\_\_ ..'* |   5 *
-| ||| @ @#'''...|        |...     .'  '.'''../..|   6 **
-|@~~~@@#@      @|        |/\ ''.  |    |   -/  :|   7 **
+|@..@'. ~ " ' ~ |        |>O>o<@< \____       .'|   4 **
+|_.~._@'.. ~ ~ *|        | _| |_    ..\_\_ ..'* |   5 *
+| ||| @@#@'''...|        |...     .'  '.'''../..|   6 **
+|@~~~#@@# @#@@  |        |/\ ''.  |    |   -/  :|   7 **
 |~~..--. _____  |        |* /~\ '.|    | - /  .'|   8 *
 '---'  |        |        |        |    |        |   9
        |------- |        |   /\ .'|    |'''~~~~~|  10 **
-       |.......||        |/\ ..'  |    |   . .  |  11 *
+       |.......||        |/\ ..'  |    |.  .   ~|  11 *
        |        |        |        |    |        |  12
        |        |        |        |    |        |  13
-       |        |        |        |    |        |  14
+       |...'..''|        |.. :::::|    |..|\..''|  14 *
        |.  ''.  |        |.  :::::|    |──┬┴┴┴┬─|  15 *
        |        |        |        |    |        |  16
+       |        |        |        |    |        |  17
 #+end_example
 
 #+html:<details><summary>Setup</summary>
@@ -929,21 +930,7 @@ CLOSED: [2024-12-15 Sun 07:34]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
-
-(require '[clojure.math :as math])
-
-(def canvas
-  "...........
-...........
-...........
-...........
-...........
-...........
-...........")
-
-(let [
-      ;; [w h] [101 103]
-      [w h] [11 7]
+(let [[w h] [101 103]
       wrap (fn [[x y]] [(mod x w) (mod y h)])
       simulate (fn [times [coord velocity]]
                  (reduce (fn [c _] (wrap (mapv + c velocity)))
@@ -960,35 +947,53 @@ CLOSED: [2024-12-15 Sun 07:34]
                                 (and (<= x xx (dec (+ x w)))
                                      (<= y yy (dec (+ y h)))))
                               coords))
-      quadrants (let [w (dec (math/round (/ w 2)))
-                      h (dec (math/round (/ h 2)))]
+      quadrants (let [w (/ (dec w) 2)
+                      h (/ (dec h) 2)]
                   [[0 0 w h]
                    [(inc w) 0 w h]
                    [0 (inc h) w h]
                    [(inc w) (inc h) w h]])]
 
-  quadrants
   (let [results (map (partial simulate 100) robots)]
-
-    ;; fun visual:
+    ;; visual:
     (-> (grid/make w h)
         (grid/gmap (constantly 0))
         (grid/gupdate inc results)
         (grid/gmap (fn [at] (if (zero? at) \. at)))
         (grid/gprint))
 
-
-
     (->> quadrants
          (map (fn [quadrant]
-                (prn quadrant)
                 (quadrant-bots quadrant results)) )
          (map count)
-         (reduce +)
-         )))
+         (reduce *))))
+#+end_src
 
-;; 396 too low
+#+RESULTS:
+: 230461440
 
+#+html:</details>
+
+#+html:<details><summary>Part 2</summary>
+#+begin_src clojure
+(let [[w h] [101 103]
+      wrap (fn [[x y]] [(mod x w) (mod y h)])
+      simulate (fn [times [coord velocity]]
+                 (reduce (fn [c _] (wrap (mapv + c velocity)))
+                         coord (range times)))
+
+      robots (->> (get-input "14")
+                  (string/split-lines)
+                  (map (partial re-seq #"-?\d+"))
+                  (map (partial map parse-long))
+                  (map (fn [[x y vx vy]] [[x y] [vx vy]])))
+      ]
+
+  (let [results (map (partial simulate 100) robots)]
+    ;; visual:
+
+
+    ))
 #+end_src
 #+html:</details>
 
