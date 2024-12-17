@@ -3,7 +3,7 @@ It's [[https://adventofcode.com/2024/][advent of code]] in clojure. Have some mi
 #+begin_src sh :exports results :results output
 session=$(bash -ic 'echo $AOC_SESSION' 2>/dev/null)
 
-curl "https://adventofcode.com/2024/" -X GET -H "Cookie: session=${session}" | \
+curl "https://adventofcode.com/2024/" -s -X GET -H "Cookie: session=${session}" | \
      grep aria-label | \
      awk '!/star/{sub("*<","<"); sub("*<","<")} 1'  | \
      awk '/calendar-complete/{sub("*<","<")} 1'  | \
@@ -976,11 +976,12 @@ CLOSED: [2024-12-15 Sun 07:34]
 
 #+html:<details><summary>Part 2</summary>
 #+begin_src clojure
+(require '[lib.grid :as grid])
+
 (let [[w h] [101 103]
       wrap (fn [[x y]] [(mod x w) (mod y h)])
-      simulate (fn [times [coord velocity]]
-                 (reduce (fn [c _] (wrap (mapv + c velocity)))
-                         coord (range times)))
+      step (fn [[coord velocity]]
+             [(wrap (mapv + coord velocity)) velocity])
 
       robots (->> (get-input "14")
                   (string/split-lines)
@@ -989,11 +990,27 @@ CLOSED: [2024-12-15 Sun 07:34]
                   (map (fn [[x y vx vy]] [[x y] [vx vy]])))
       ]
 
-  (let [results (map (partial simulate 100) robots)]
-    ;; visual:
+  (reduce
+   (fn [state times]
+     (let [new-state (map step state)]
+       ;; this check is expensive
+       (if (every? (set (map first new-state))
+                   [[51 0]
+                    [50 1] [52 1]])
+         (do (-> (grid/make w h)
+                 (grid/gassoc \+ (map first new-state))
+                 (grid/gprint))
+             (reduced times))
+         new-state)))
+   robots
+   (range 1 3000))
 
 
-    ))
+
+
+
+
+  )
 #+end_src
 #+html:</details>
 
