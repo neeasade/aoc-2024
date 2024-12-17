@@ -4,6 +4,13 @@
 
 ;; todo: dir-look?
 
+(defn make
+  ([w h] (make w h \.))
+  ([w h c] {:width w
+            :height h
+            :grid (mapv (fn [_] (vec (repeat w c)))
+                        (range h))}))
+
 (defn parse [input]
   (let [grid (mapv vec (string/split-lines input))]
     {:width (count (first grid))
@@ -35,17 +42,17 @@
 (defn wrap [{:keys [width height]} [x y]]
   [(mod x width) (mod y height)])
 
-(defn gassoc [grid value & coords]
+(defn gassoc [grid value coords]
   (reduce (fn [g coord]
             (assoc-in g `[:grid ~@(reverse coord)] value))
           grid coords))
 
-(defn gupdate [grid f & coords]
+(defn gupdate [grid f coords]
   (reduce (fn [g coord]
             (update-in g `[:grid ~@(reverse coord)] f))
           grid coords))
 
-(defn gmap [grid f] (gupdate f (points grid)))
+(defn gmap [grid f] (gupdate grid f (points grid)))
 
 (defn gprint [grid]
   ;; pretty
@@ -62,20 +69,18 @@
   "return surrounding cells in the form [[x y] look]"
   ([grid coord] (neighbors grid coord 12346789))
   ([grid coord neighbors]
-   (let [coords (map (fn [i] (get [[-1 -1] [0 -1] [1 -1] [-1 0] [0 0] [1 0] [-1 1] [0 1] [1 1]] (dec i)))
-                     (map (comp Integer/parseInt str) (seq (str neighbors))))]
-     (keep (fn [dir]
-             (let [c (mapv + coord dir)]
-               (when (within? grid c)
-                 [c (look grid c)])))
-           coords)))
+   (->> (map (fn [i] (get [[-1 -1] [0 -1] [1 -1] [-1 0] [0 0] [1 0] [-1 1] [0 1] [1 1]] (dec i)))
+             (map (comp Integer/parseInt str) (seq (str neighbors))))
+        (keep (fn [dir] (let [c (mapv + coord dir)]
+                          (when (within? grid c)
+                            [c (look grid c)]))))))
   ([grid coord grabs look-val]
-   (keep (fn [[coord v]]
-           (let [looking-for (if (coll? look-val)
-                               (set look-val)
-                               (set [look-val]))]
-             (and (looking-for v) coord)))
-         (neighbors grid coord grabs))))
+   (->> (neighbors grid coord grabs)
+        (keep (fn [[coord v]]
+                (let [looking-for (if (coll? look-val)
+                                    (set look-val)
+                                    (set [look-val]))]
+                  (and (looking-for v) coord)))))))
 
 (comment
   (neighbors (parse "123\n456\n789") [0 0] \2)
@@ -84,6 +89,8 @@
 
 
   (neighbors (parse "123\n456\n789") [1 1] 123 #{\2 \3})
+
+  (neighbors (parse "123\n456\n789") [1 1] 123)
 
   (neighbors (parse "123\n456\n789") [1 1] 2468 \2)
 

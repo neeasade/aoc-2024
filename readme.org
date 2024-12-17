@@ -803,7 +803,7 @@ CLOSED: [2024-12-15 Sun 07:34]
 #+end_src
 #+html:</details>
 
-*** Day 12: [[https://adventofcode.com/2024/day/12][Garden Groups]]
+*** TODO Day 12: [[https://adventofcode.com/2024/day/12][Garden Groups]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -916,6 +916,82 @@ CLOSED: [2024-12-15 Sun 07:34]
 #+end_src
 #+html:</details>
 
+
+*** TODO Day 13: [[https://adventofcode.com/2024/day/13][Claw Contraption]]
+#+html:<details><summary>Part 1</summary>
+#+begin_src clojure
+(get-input "n")
+;; in progress
+#+end_src
+#+html:</details>
+
+*** TODO Day 14: [[https://adventofcode.com/2024/day/14][Restroom Redoubt]]
+
+#+html:<details><summary>Part 1</summary>
+#+begin_src clojure
+
+(require '[clojure.math :as math])
+
+(def canvas
+  "...........
+...........
+...........
+...........
+...........
+...........
+...........")
+
+(let [
+      ;; [w h] [101 103]
+      [w h] [11 7]
+      wrap (fn [[x y]] [(mod x w) (mod y h)])
+      simulate (fn [times [coord velocity]]
+                 (reduce (fn [c _] (wrap (mapv + c velocity)))
+                         coord (range times)))
+
+      robots (->> (get-input "14")
+                  (string/split-lines)
+                  (map (partial re-seq #"-?\d+"))
+                  (map (partial map parse-long))
+                  (map (fn [[x y vx vy]] [[x y] [vx vy]])))
+
+      quadrant-bots (fn [[x y w h] coords]
+                      (filter (fn [[xx yy]]
+                                (and (<= x xx (dec (+ x w)))
+                                     (<= y yy (dec (+ y h)))))
+                              coords))
+      quadrants (let [w (dec (math/round (/ w 2)))
+                      h (dec (math/round (/ h 2)))]
+                  [[0 0 w h]
+                   [(inc w) 0 w h]
+                   [0 (inc h) w h]
+                   [(inc w) (inc h) w h]])]
+
+  quadrants
+  (let [results (map (partial simulate 100) robots)]
+
+    ;; fun visual:
+    (-> (grid/make w h)
+        (grid/gmap (constantly 0))
+        (grid/gupdate inc results)
+        (grid/gmap (fn [at] (if (zero? at) \. at)))
+        (grid/gprint))
+
+
+
+    (->> quadrants
+         (map (fn [quadrant]
+                (prn quadrant)
+                (quadrant-bots quadrant results)) )
+         (map count)
+         (reduce +)
+         )))
+
+;; 396 too low
+
+#+end_src
+#+html:</details>
+
 *** TODO Day 15:
 
 #+html:<details><summary>Part 1</summary>
@@ -931,8 +1007,8 @@ CLOSED: [2024-12-15 Sun 07:34]
 
 (defn shift [grid coord1 coord2]
   (-> grid
-      (grid/gassoc (grid/look grid coord2) coord1)
-      (grid/gassoc (grid/look grid coord1) coord2)))
+      (grid/gassoc (grid/look grid coord2) [coord1])
+      (grid/gassoc (grid/look grid coord1) [coord2])))
 
 ;; https://stackoverflow.com/a/30928487
 (defn take-while+
@@ -1003,11 +1079,7 @@ CLOSED: [2024-12-15 Sun 07:34]
 (defn box-coords [grid dir box-pos]
   )
 
-(defn shift [grid coord1 coord2]
-  (-> grid
-      (grid/gassoc (grid/look grid coord2) coord1)
-      (grid/gassoc (grid/look grid coord1) coord2)))
-
+;; todo get shift
 ;; node is a coord
 
 ;; ##...[][]...##
@@ -1018,20 +1090,16 @@ CLOSED: [2024-12-15 Sun 07:34]
   (zip/zipper
    ;; branch? is a fn that, given a node, returns true if can have children, even if it currently doesn't.
    (fn [node]
-     (->> (neighbors grid node 123)
-          (map second)
-          (every? #{\[ \]})))
+     (and node
+          (->> (grid/neighbors grid node 123)
+               (map second)
+               (every? #{\[ \]}))))
    ;; children is a fn that, given a branch node, returns a seq of its children.
    (fn [node]
-     (let [sides [[1 0] [0 0] [-1 0]]
-           coords (map (fn [side] (mapv + node dir side)) sides)]
-       coords
-       ;; (map (partial grid/look grid) coords)
-       ))
+     (map first (grid/neighbors grid node 123)))
 
    ;; make-node is a fn that, given an existing node and a seq of children, returns a new branch node with the supplied children.
    (fn [node _] node)
-
    ;; root is the root node.
    coord
    ))
@@ -1047,9 +1115,9 @@ CLOSED: [2024-12-15 Sun 07:34]
          (take 10)
          (map zip/node)
          ;; (map first)
-         )
+         ))
 
-    )
+  )
 
 (box-zipper)
 
@@ -1065,7 +1133,7 @@ CLOSED: [2024-12-15 Sun 07:34]
 (defn dir-look [grid pos dir]
   (->> pos
        (iterate (fn [coord] (mapv + coord (->dir dir))))
-       (take-while+ (fn [c] (not (#{\# \.} (grid/look grid c)))))))
+       (take-while+ (fn [c] (not (# (grid/look grid c)))))))
 
 (defn blocked? [grid pos dir]
   (every? (fn [c] (#{\@ \O \#} (grid/look grid c)))
@@ -1104,7 +1172,7 @@ CLOSED: [2024-12-15 Sun 07:34]
 #+html:</details>
 
 
-*** Day 16
+*** Day 16: [[https://adventofcode.com/2024/day/16][Reindeer Maze]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -1114,9 +1182,9 @@ CLOSED: [2024-12-15 Sun 07:34]
 (require '[clojure.set :as set])
 (require '[lib.grid :as grid])
 
-
 (let [grid (grid/parse (get-input "16_example"))
       start (first (grid/points grid (= \S (grid/look g [x y]))))]
+
   (loop [looking-at [[start []]]
          visited #{}]
     (when (peek looking-at)
