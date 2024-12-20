@@ -16,20 +16,22 @@ curl "https://adventofcode.com/2024/" -s -X GET -H "Cookie: session=${session}" 
        .--'~ ~ ~|        .-' *       \  /     '-.   1 **
     .--'~  ,* ~ |        |  >o<   \_\_\|_/__/   |   2 **
 .---': ~ '(~), ~|        | >@>O< o-_/.()__------|   3 **
-|@..@'. ~ " ' ~ |        |>O>o<@< \____       .'|   4 **
+|#..#'. ~ " ' ~ |        |>O>o<@< \____       .'|   4 **
 |_.~._@'.. ~ ~ *|        | _| |_    ..\_\_ ..'* |   5 *
-| ||| # @@'''...|        |...     .'  '.'''../..|   6 **
-|#~~~@@@ # ##@# |        |/\ ''.  |    |   -/  :|   7 **
+| ||| @@@@'''...|        |...     .'  '.'''../..|   6 **
+|@~~~#@#@       |        |/\ ''.  |    |   -/  :|   7 **
 |~~..--. _____  |        |* /~\ '.|    | - /  .'|   8 *
 '---'  |        |        |        |    |        |   9
        |------- |        |   /\ .'|    |'''~~~~~|  10 **
-       |.......||        |/\ ..'  |    |.  .    |  11 *
+       |.......||        |/\ ..'  |    |   .    |  11 *
        |        |        |        |    |        |  12
        |        |        |        |    |        |  13
-       |...'..''|        |.  :::::|    |..|\..''|  14 *
+       |...'..''|        |. .:::::|    |..|\..''|  14 *
        |.  ''.  |        |.  :::::|    |──┬┴┴┴┬─|  15 *
        |        |        |        |    |        |  16
        |        |        |        |    |        |  17
+       |        |        |        |    |        |  18
+       | ~ ..'  |        |:   '.  |    |─┘├┬┬┬┴─|  19 *
 #+end_example
 
 #+html:<details><summary>Setup</summary>
@@ -980,37 +982,32 @@ CLOSED: [2024-12-15 Sun 07:34]
 
 (let [[w h] [101 103]
       wrap (fn [[x y]] [(mod x w) (mod y h)])
-      step (fn [[coord velocity]]
-             [(wrap (mapv + coord velocity)) velocity])
+      step (fn [[coord velocity lined]]
+             (let [new-place (wrap (mapv + coord velocity))]
+               [new-place velocity]))
 
       robots (->> (get-input "14")
                   (string/split-lines)
                   (map (partial re-seq #"-?\d+"))
                   (map (partial map parse-long))
                   (map (fn [[x y vx vy]] [[x y] [vx vy]])))
-      ]
 
-  (reduce
-   (fn [state times]
-     (let [new-state (map step state)]
-       ;; this check is expensive
-       (if (every? (set (map first new-state))
-                   [[51 0]
-                    [50 1] [52 1]])
-         (do (-> (grid/make w h)
-                 (grid/gassoc \+ (map first new-state))
-                 (grid/gprint))
-             (reduced times))
-         new-state)))
-   robots
-   (range 1 3000))
+      ;; used to find one point at top of tree
+      tree? (fn [robots]
+              (every? (set (map first robots))
+                      [[51 0]
+                       [50 1] [52 1]]))
 
-
-
-
-
-
-  )
+      show (fn [robots] (-> (grid/make w h)
+                            (grid/gassoc \+ (map first robots))
+                            (grid/gprint)))]
+  (loop [times 1
+         robots robots]
+    (if (or (= times 3000)
+            (tree? robots))
+      (do (show robots)
+          times)
+      (recur (inc times) (map step robots)))))
 #+end_src
 #+html:</details>
 
@@ -1221,6 +1218,61 @@ CLOSED: [2024-12-15 Sun 07:34]
                  (conj visited pos)))))
 
     ))
+;; in progress
+#+end_src
+#+html:</details>
+
+
+*** Day 17:
+
+#+html:<details><summary>Part 1</summary>
+#+begin_src clojure
+(get-input "17")
+
+
+;; in progress
+#+end_src
+#+html:</details>
+
+
+
+*** Day 18:
+
+#+html:<details><summary>Part 1</summary>
+#+begin_src clojure
+(get-input "18_example")
+
+
+;; in progress
+#+end_src
+#+html:</details>
+
+
+*** Day 19:
+
+#+html:<details><summary>Part 1</summary>
+#+begin_src clojure
+(defn prefix-match [word parts]
+  ;; (prn word parts)
+  (if (string/blank? word) true
+      (first
+       (filter (fn [s]
+                 (and (string/starts-with? word s)
+                      (prefix-match (subs word (count s)) parts)))
+               parts))))
+
+(let [[towels _ & targets] (string/split-lines (get-input "19"))
+      towels (string/split towels #", ")]
+  (->> targets
+       (keep (fn [target] (prefix-match target towels)))
+       (count)))
+
+#+end_src
+#+html:</details>
+
+#+html:<details><summary>Part 2</summary>
+#+begin_src clojure
+(get-input "n")
 ;; in progress
 #+end_src
 #+html:</details>
