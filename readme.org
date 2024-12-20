@@ -1266,13 +1266,35 @@ CLOSED: [2024-12-15 Sun 07:34]
   (->> targets
        (keep (fn [target] (prefix-match target towels)))
        (count)))
-
 #+end_src
 #+html:</details>
 
 #+html:<details><summary>Part 2</summary>
 #+begin_src clojure
-(get-input "n")
 ;; in progress
+
+(let [[towels _ & targets] (string/split-lines (get-input "19"))
+      towels (string/split towels #", ")]
+  (def towels towels)
+  (def targets targets))
+
+(defn solve [word]
+  (if (string/blank? word)
+    ;; (apply str trail)
+    1
+    (->> towels
+         (filter (partial string/starts-with? word))
+         (map (fn [maybe]
+                (solve (subs word (count maybe)))))
+         (reduce +))))
+
+(def solve-memo (memoize solve))
+
+(->> targets
+     (map solve-memo)
+     ;; (map flatten)
+     ;; (map count)
+     (reduce +))
+
 #+end_src
 #+html:</details>
