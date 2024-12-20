@@ -83,8 +83,7 @@ curl "https://adventofcode.com/2024/" -s -X GET -H "Cookie: session=${session}" 
 #+end_src
 #+html:</details>
 
-*** DONE Day 1: [[https://adventofcode.com/2024/day/1][Historian Hysteria]]
-CLOSED: [2024-12-15 Sun 07:31]
+*** Day 1: [[https://adventofcode.com/2024/day/1][Historian Hysteria]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -126,8 +125,7 @@ Bonus: uiua
 
 #+html:</details>
 
-*** DONE Day 2: [[https://adventofcode.com/2024/day/2][Red-Nosed Reports]]
-CLOSED: [2024-12-15 Sun 07:31]
+*** Day 2: [[https://adventofcode.com/2024/day/2][Red-Nosed Reports]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -186,8 +184,7 @@ CLOSED: [2024-12-15 Sun 07:31]
 
 #+html:</details>
 
-*** DONE Day 3: [[https://adventofcode.com/2024/day/3][Mull It Over]]
-CLOSED: [2024-12-15 Sun 07:31]
+*** Day 3: [[https://adventofcode.com/2024/day/3][Mull It Over]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -223,8 +220,7 @@ CLOSED: [2024-12-15 Sun 07:31]
 
 #+html:</details>
 
-*** DONE Day 4: [[https://adventofcode.com/2024/day/4][Ceres Search]]
-CLOSED: [2024-12-15 Sun 07:31]
+*** Day 4: [[https://adventofcode.com/2024/day/4][Ceres Search]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -274,7 +270,7 @@ CLOSED: [2024-12-15 Sun 07:31]
 
 #+html:</details>
 
-*** TODO Day 5: [[https://adventofcode.com/2024/day/5][Print Queue]]
+*** Day 5: [[https://adventofcode.com/2024/day/5][Print Queue]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -302,8 +298,7 @@ CLOSED: [2024-12-15 Sun 07:31]
 
 #+html:</details>
 
-*** DONE Day 6: [[https://adventofcode.com/2024/day/6][Guard Gallivant]]
-CLOSED: [2024-12-15 Sun 07:32]
+*** Day 6: [[https://adventofcode.com/2024/day/6][Guard Gallivant]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -324,7 +319,7 @@ CLOSED: [2024-12-15 Sun 07:32]
           [x- y-] (get dirs (mod dir (count dirs)))
           next [(+ x x-) (+ y y-)]]
       (condp = (look next)
-        nil (inc (count seen))          ; done!
+        nil (inc (count seen))          ;***!
         \# (recur (inc dir) position seen)
         (recur dir next (conj seen position))))))
 #+end_src
@@ -377,8 +372,7 @@ CLOSED: [2024-12-15 Sun 07:32]
 
 #+html:</details>
 
-*** DONE Day 7: [[https://adventofcode.com/2024/day/7][Bridge Repair]]
-CLOSED: [2024-12-15 Sun 07:33]
+*** Day 7: [[https://adventofcode.com/2024/day/7][Bridge Repair]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -451,7 +445,7 @@ math instead?
 #+RESULTS:
 : 661823605105500
 
-*** TODO Day 8: [[https://adventofcode.com/2024/day/8][Resonant Collinearity]]
+*** Day 8: [[https://adventofcode.com/2024/day/8][Resonant Collinearity]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -585,7 +579,7 @@ math instead?
 #+end_src
 #+html:</details>
 
-*** TODO Day 9: [[https://adventofcode.com/2024/day/9][Disk Fragmenter]]
+*** Day 9: [[https://adventofcode.com/2024/day/9][Disk Fragmenter]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -684,7 +678,7 @@ math instead?
   )
 
 
-;; todo
+;;***
 #+end_src
 
 #+RESULTS:
@@ -692,8 +686,7 @@ math instead?
 
 #+html:</details>
 
-*** DONE Day 10: [[https://adventofcode.com/2024/day/10][Hoof It]]
-CLOSED: [2024-12-15 Sun 07:34]
+*** Day 10: [[https://adventofcode.com/2024/day/10][Hoof It]]
 
 #+html:<details><summary>Part 1 and 2</summary>
 #+begin_src clojure
@@ -731,7 +724,7 @@ CLOSED: [2024-12-15 Sun 07:34]
 
 #+html:</details>
 
-*** TODO Day 11: [[https://adventofcode.com/2024/day/11][Plutonian Pebbles]]
+*** Day 11: [[https://adventofcode.com/2024/day/11][Plutonian Pebbles]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -758,7 +751,7 @@ CLOSED: [2024-12-15 Sun 07:34]
 #+html:<details><summary>Part 2</summary>
 #+begin_src clojure
 ;; in progress
-;; todo: memoize with frequencies
+;;***: memoize with frequencies
 
 (defn step [n]
   (if (zero? n)
@@ -806,7 +799,7 @@ CLOSED: [2024-12-15 Sun 07:34]
 #+end_src
 #+html:</details>
 
-*** TODO Day 12: [[https://adventofcode.com/2024/day/12][Garden Groups]]
+*** Day 12: [[https://adventofcode.com/2024/day/12][Garden Groups]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -882,7 +875,7 @@ CLOSED: [2024-12-15 Sun 07:34]
        (set)
        ;; (count)
        )
-  #_(println (format "Reading region %s ... done" coord) ))
+  #_(println (format "Reading region %s ...***" coord) ))
 
 (defn perimeter [points]
   ;; claude gave me a logic pointer here
@@ -920,7 +913,7 @@ CLOSED: [2024-12-15 Sun 07:34]
 #+html:</details>
 
 
-*** TODO Day 13: [[https://adventofcode.com/2024/day/13][Claw Contraption]]
+*** Day 13: [[https://adventofcode.com/2024/day/13][Claw Contraption]]
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
 (get-input "n")
@@ -928,7 +921,7 @@ CLOSED: [2024-12-15 Sun 07:34]
 #+end_src
 #+html:</details>
 
-*** TODO Day 14: [[https://adventofcode.com/2024/day/14][Restroom Redoubt]]
+*** Day 14: [[https://adventofcode.com/2024/day/14][Restroom Redoubt]]
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -1011,7 +1004,7 @@ CLOSED: [2024-12-15 Sun 07:34]
 #+end_src
 #+html:</details>
 
-*** TODO Day 15:
+*** Day 15:
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
@@ -1098,7 +1091,7 @@ CLOSED: [2024-12-15 Sun 07:34]
 (defn box-coords [grid dir box-pos]
   )
 
-;; todo get shift
+;;*** get shift
 ;; node is a coord
 
 ;; ##...[][]...##
@@ -1241,7 +1234,6 @@ CLOSED: [2024-12-15 Sun 07:34]
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
 (get-input "18_example")
-
 
 ;; in progress
 #+end_src
