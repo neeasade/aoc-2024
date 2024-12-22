@@ -16,26 +16,29 @@ curl "https://adventofcode.com/2024/" -s -X GET -H "Cookie: session=${session}" 
        .--'~ ~ ~|        .-' *       \  /     '-.   1 **
     .--'~  ,* ~ |        |  >o<   \_\_\|_/__/   |   2 **
 .---': ~ '(~), ~|        | >@>O< o-_/.()__------|   3 **
-|#..#'. ~ " ' ~ |        |>O>o<@< \____       .'|   4 **
-|_.~._@'.. ~ ~ *|        | _| |_    ..\_\_ ..'* |   5 *
-| ||| @@@@'''...|        |...     .'  '.'''../..|   6 **
-|@~~~#@#@       |        |/\ ''.  |    |   -/  :|   7 **
+|@..@'. ~ " ' ~ |        |>O>o<@< \____       .'|   4 **
+|_.~._#'.. ~ ~ *|        | _| |_    ..\_\_ ..'* |   5 *
+| ||| @#@@'''...|        |...     .'  '.'''../..|   6 **
+|@~~~@@@## # @  |        |/\ ''.  |    |   -/  :|   7 **
 |~~..--. _____  |        |* /~\ '.|    | - /  .'|   8 *
 '---'  |        |        |        |    |        |   9
        |------- |        |   /\ .'|    |'''~~~~~|  10 **
-       |.......||        |/\ ..'  |    |   .    |  11 *
+       |.......||        |/\ ..'  |    | . .    |  11 *
        |        |        |        |    |        |  12
        |        |        |        |    |        |  13
-       |...'..''|        |. .:::::|    |..|\..''|  14 *
+       |...'..''|        |...:::::|    |..|\..''|  14 *
        |.  ''.  |        |.  :::::|    |──┬┴┴┴┬─|  15 *
        |        |        |        |    |        |  16
        |        |        |        |    |        |  17
        |        |        |        |    |        |  18
        | ~ ..'  |        |:   '.  |    |─┘├┬┬┬┴─|  19 *
+       |        |        |        '.  .'        |  20
+.------'        '------. |          ''          |  21
+| .---_ '------'_  .~' | |  .|\|\ / \ /~ >@<<*<O|  22 **
 #+end_example
 
 #+html:<details><summary>Setup</summary>
-#+BEGIN_SRC emacs-lisp :results silent
+#+BEGIN_SRC emacs-lisp :exports none :results silent
 (require 'ob-clojure)
 (setq org-babel-clojure-backend 'cider)
 
@@ -1088,50 +1091,59 @@ math instead?
     \^ [0 -1]
     \v [0 1]))
 
-(defn box-coords [grid dir box-pos]
-  )
-
-;;*** get shift
-;; node is a coord
-
-;; ##...[][]...##
-;; ##...@[]....##
-
 ;; will only apply in the v^ case
 (defn box-zipper [grid coord dir]
   (zip/zipper
    ;; branch? is a fn that, given a node, returns true if can have children, even if it currently doesn't.
-   (fn [node]
-     (and node
-          (->> (grid/neighbors grid node 123)
-               (map second)
-               (every? #{\[ \]}))))
+   (fn [node] (and node (grid/look-relative grid node dir #{\[ \]})))
    ;; children is a fn that, given a branch node, returns a seq of its children.
-   (fn [node]
-     (map first (grid/neighbors grid node 123)))
-
+   (fn [node] (condp = (grid/look-relative grid node dir)
+                \[ (map first (grid/neighbors grid node 23))
+                \] (map first (grid/neighbors grid node 12))))
    ;; make-node is a fn that, given an existing node and a seq of children, returns a new branch node with the supplied children.
    (fn [node _] node)
    ;; root is the root node.
-   coord
-   ))
+   coord))
 
-(defn read-region [coord]
-  (let [grid (grid/parse
-              "##...[][]...##
-##...@[]....##")
+(defn read-zipper [z]
+  ;; return nodes of a zipper
+  (->> z
+       (iterate zip/next)
+       (take-while+ #(not (zip/end? %)))
+       (keep zip/node)
+       (distinct)))
+
+(defn read-boxes [grid coord dir]
+  (->> (if (grid/look grid coord \[) 56 45)
+       (grid/neighbors grid coord)
+       (map first)
+       (mapcat (fn [c] (read-zipper (box-zipper grid c dir))))
+       (distinct)))
+
+(defn can-move? [grid boxes up?]
+  ;; takes in box points
+  (let [last-row (first (sort (if up? < >) (map second boxes)))
         ]
-    (->> (box-zipper grid [6 1] [0 -1])
-         (iterate zip/next)
-         (take-while #(not (zip/end? %)))
-         (take 10)
-         (map zip/node)
-         ;; (map first)
-         ))
+    last-row
+    )
 
+  (group)
   )
 
-(box-zipper)
+(can-move?
+ '([2 2] [2 1] [3 1] [3 2])
+ true
+ )
+
+(read-boxes
+ (grid/parse
+  "......
+..[]..
+..[].."
+  )
+ [2 2]
+ (->dir \^)
+ )
 
 ;; https://stackoverflow.com/a/30928487
 (defn take-while+
@@ -1289,4 +1301,85 @@ math instead?
      (reduce +))
 
 #+end_src
+#+html:</details>
+
+*** Day 20
+*** Day 21
+*** Day 22: [[https://adventofcode.com/2024/day/22][Monkey Market]]
+
+#+html:<details><summary>Part 1</summary>
+#+begin_src clojure
+(defn mix-and-prune [secret-number val]
+  (mod (bit-xor val secret-number) 16777216))
+
+(defn next-number [n]
+  (let [one (mix-and-prune (* n 64) n)
+        two (mix-and-prune one (int (Math/floor (/ one 32))))
+        three (mix-and-prune two (* two 2048))]
+    three))
+
+(->> (mapv parse-long (string/split-lines (get-input "22")))
+     (map (fn [input]
+            (last (take 2001 (iterate next-number input)))))
+     (reduce +))
+#+end_src
+
+#+RESULTS:
+: 16953639210
+
+#+html:</details>
+
+#+html:<details><summary>Part 2</summary>
+#+begin_src clojure
+(defn mix-and-prune [secret-number val]
+  (mod (bit-xor val secret-number) 16777216))
+
+(defn next-number [n]
+  (let [one (mix-and-prune n (* n 64))
+        two (mix-and-prune one (int (Math/floor (/ one 32))))
+        three (mix-and-prune two (* two 2048))]
+    three))
+
+;; build [[number [1 2 3 4] price]]
+(defn stats [initial-secret]
+  (reverse
+   (let [price (fn [n] (Character/digit (last (str n)) 10))]
+     (reduce
+      (fn [acc next-secret]
+        (let [[last-secret history last-price] (first acc)
+              price-diff (- (price next-secret) (price last-secret))]
+          (conj acc [next-secret
+                     (vec (take-last 4 (conj history price-diff)))
+                     (+ last-price price-diff)])))
+      (list [initial-secret [] (price initial-secret)])
+      (drop 1 (take 2001 (iterate next-number initial-secret)))))))
+
+(defn check-profit [all-stats freq]
+  (->> all-stats
+       (map (fn [s] (or (->> s
+                             (filter #(= freq (second %)))
+                             (first)
+                             (last))
+                        0)))
+       (reduce +)))
+
+(let [all-stats (pmap stats (mapv parse-long (string/split-lines (get-input "22"))))
+      patterns (->> all-stats
+                    (mapcat (fn [s]
+                              (->> s
+                                   (drop 4)
+                                   (map second))))
+                    (frequencies)
+                    (sort-by val >)
+                    ;; assumption that it will appear in top 50 most seen patterns
+                    (take 50)
+                    (map first))]
+  (->> patterns
+       (pmap (fn [pattern]
+               [pattern (check-profit all-stats pattern)]))
+       (sort-by second >)
+       (first)
+       (second)))
+#+end_src
+
 #+html:</details>

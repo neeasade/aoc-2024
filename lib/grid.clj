@@ -30,10 +30,12 @@
 
 (defn look
   ([grid [x y]] (-> (:grid grid) (nth y []) (nth x nil)))
-  ([grid [x y] val]
-   ;; return value or nil
-   (let [looking-for (if (coll? val) (set val) (set [val]))]
-     (looking-for (look grid [x y])))))
+  ([grid [x y] val] (let [looking-for (if (coll? val) (set val) (set [val]))]
+                      (looking-for (look grid [x y])))))
+
+(defn look-relative
+  ([grid coord dir] (look grid (mapv + coord dir)))
+  ([grid coord dir val] (look grid (mapv + coord dir) val)))
 
 (defn within? [grid [x y]]
   (and (< -1 x (:width grid))
