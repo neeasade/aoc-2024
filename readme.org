@@ -18,15 +18,15 @@ curl "https://adventofcode.com/2024/" -s -X GET -H "Cookie: session=${session}" 
 .---': ~ '(~), ~|        | >@>O< o-_/.()__------|   3 **
 |@..@'. ~ " ' ~ |        |>O>o<@< \____       .'|   4 **
 |_.~._#'.. ~ ~ *|        | _| |_    ..\_\_ ..'* |   5 *
-| ||| @#@@'''...|        |...     .'  '.'''../..|   6 **
-|@~~~@@@## # @  |        |/\ ''.  |    |   -/  :|   7 **
+| ||| #@ #'''...|        |...     .'  '.'''../..|   6 **
+|#~~~@@ @@ #    |        |/\ ''.  |    |   -/  :|   7 **
 |~~..--. _____  |        |* /~\ '.|    | - /  .'|   8 *
 '---'  |        |        |        |    |        |   9
        |------- |        |   /\ .'|    |'''~~~~~|  10 **
-       |.......||        |/\ ..'  |    | . .    |  11 *
+       |.......||        |/\ ..'  |    |.. .   ~|  11 *
        |        |        |        |    |        |  12
        |        |        |        |    |        |  13
-       |...'..''|        |...:::::|    |..|\..''|  14 *
+       |...'..''|        |.  :::::|    |..|\..''|  14 *
        |.  ''.  |        |.  :::::|    |──┬┴┴┴┬─|  15 *
        |        |        |        |    |        |  16
        |        |        |        |    |        |  17
@@ -34,7 +34,8 @@ curl "https://adventofcode.com/2024/" -s -X GET -H "Cookie: session=${session}" 
        | ~ ..'  |        |:   '.  |    |─┘├┬┬┬┴─|  19 *
        |        |        |        '.  .'        |  20
 .------'        '------. |          ''          |  21
-| .---_ '------'_  .~' | |  .|\|\ / \ /~ >@<<*<O|  22 **
+| .---_ '------'_  .~' | |   |\|\ / \ /~ >@<<*<O|  22 **
+|/ / /\||      | )/~\  | |___|\|________>O>>o>>o|  23 **
 #+end_example
 
 #+html:<details><summary>Setup</summary>
@@ -1382,4 +1383,61 @@ math instead?
        (second)))
 #+end_src
 
+#+html:</details>
+
+*** Day 23: [[https://adventofcode.com/2024/day/23][LAN Party]]
+
+#+html:<details><summary>Part 1</summary>
+#+begin_src clojure
+(require '[clojure.math.combinatorics :as combo])
+
+(let [pairs (map #(string/split % #"-") (string/split-lines (get-input "23")))
+      connections (reduce (fn [acc [a b]]
+                            (-> acc
+                                (update a conj b)
+                                (update b conj a)))
+                          {} pairs)]
+  (->> connections
+       (filter (fn [[k v]] (string/starts-with? k "t")))
+       (mapcat (fn [[t-comp friends]]
+                 (->> (combo/combinations friends 2)
+                      (filter (fn [[f1 f2]]
+                                ((set (get connections f1))
+                                 f2)))
+                      (map (partial concat [t-comp])))))
+       (map set)
+       (distinct)
+       (count)))
+#+end_src
+#+html:</details>
+
+#+html:<details><summary>Part 2</summary>
+#+begin_src clojure
+(require '[clojure.math.combinatorics :as combo])
+
+(let [pairs (map #(string/split % #"-") (string/split-lines (get-input "23")))
+      connections (reduce (fn [acc [a b]]
+                            (-> acc
+                                (update a conj b)
+                                (update b conj a)))
+                          {} pairs)
+      connections (into {} (map (fn [[k v]] [k (set v)]) connections))]
+  (->> connections
+       (map (fn [[connected friends]]
+              (->> (combo/subsets (into [] friends))
+                   (reverse)            ; largest first
+                   (filter (fn [friends-subset]
+                             ;; all connected to each other?
+                             (every? (fn [friend]
+                                       (every? #((get connections %) friend)
+                                               (remove #(= % friend) friends-subset)))
+                                     friends-subset)))
+                   (first)
+                   (set)
+                   (set/union #{connected}))))
+       (sort-by count >)
+       (first)
+       (sort)
+       (string/join ",")))
+#+end_src
 #+html:</details>
