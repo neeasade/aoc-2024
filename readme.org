@@ -1,30 +1,44 @@
 It's [[https://adventofcode.com/2024/][advent of code]] in clojure. Have some milk and cookies: 🍪🥛🍪🍪
 
 #+begin_src sh :exports results :results output
-session=$(bash -ic 'echo $AOC_SESSION' 2>/dev/null)
+AOC_SESSION=$(bash -ic 'echo $AOC_SESSION' 2>/dev/null)
 
-curl "https://adventofcode.com/2024/" -s -X GET -H "Cookie: session=${session}" | \
-     grep aria-label | \
-     awk '!/star/{sub("*<","<"); sub("*<","<")} 1'  | \
-     awk '/calendar-complete/{sub("*<","<")} 1'  | \
-     sed -E 's#</?(span|a|i)[^>]*>##g' | \
-     sed -e 's#&quot;#"#' -e 's#&gt;#>#g' -e 's#&lt;#<#g'
+banner() {
+    curl "https://adventofcode.com/2024/" -s -X GET -H "Cookie: session=${AOC_SESSION}" | \
+	 grep aria-label | \
+	 awk '!/star/{sub("*<","<"); sub("*<","<")} 1'  | \
+	 awk '/calendar-complete/{sub("*<","<")} 1'  | \
+	 sed -E 's#</?(span|a|i)[^>]*>##g' | \
+	 sed -e 's#&quot;#"#' -e 's#&gt;#>#g' -e 's#&lt;#<#g'
+}
+
+star_count() {
+    grep -Eo ' [0-9]+ \*+' | grep -o \* | wc -l
+}
+
+banner=$(banner)
+stars=$(star_count <<< "$banner")
+mkb $(( 100*${stars}/50 )) 52 | box
+echo "$banner"
 #+end_src
 
 #+RESULTS:
 #+begin_example
+╔══════════════════════════════════════════════════════╗
+║ //////////////////////////\_________________________ ║
+╚══════════════════════════════════════════════════════╝
        .--'~ ~ ~|        .-' *       \  /     '-.   1 **
     .--'~  ,* ~ |        |  >o<   \_\_\|_/__/   |   2 **
 .---': ~ '(~), ~|        | >@>O< o-_/.()__------|   3 **
-|@..@'. ~ " ' ~ |        |>O>o<@< \____       .'|   4 **
+|#..@'. ~ " ' ~ |        |>O>o<@< \____       .'|   4 **
 |_.~._#'.. ~ ~ *|        | _| |_    ..\_\_ ..'* |   5 *
-| ||| @## '''...|        |...     .'  '.'''../..|   6 **
-|@~~~#@@# @ #@ @|        |/\ ''.  |    |   -/  :|   7 **
+| ||| @@@ '''...|        |...     .'  '.'''../..|   6 **
+|@~~~@#@#@@  @  |        |/\ ''.  |    |   -/  :|   7 **
 |~~..--. _____  |        |* /~\ '.|    | - /  .'|   8 *
 '---'  |        |        |        |    |        |   9
        |------- |        |   /\ .'|    |'''~~~~~|  10 **
-       |.......||        |/\ ..'  |    |   .    |  11 *
-       |  -  -  |        |''':::::|    |  . ' . |  12 *
+       |.......||        |/\ ..'  |    |   .  . |  11 *
+       |  -  -  |        |''':::::|    |  .  .  |  12 *
        |        |        |        |    |        |  13
        |...'..''|        |.  :::::|    |..|\..''|  14 *
        |.  ''.  |        |.  :::::|    |──┬┴┴┴┬─|  15 *
@@ -36,9 +50,9 @@ curl "https://adventofcode.com/2024/" -s -X GET -H "Cookie: session=${session}" 
 .------'        '------. |          ''          |  21
 | .---_ '------'_  .~' | |   |\|\ / \ /~ >@<<*<O|  22 **
 |/ / /\||      | )/~\  | |___|\|________>O>>o>>o|  23 **
+|                      | |                      |  24
 #+end_example
 
-#+html:<details><summary>Setup</summary>
 #+BEGIN_SRC emacs-lisp :exports none :results silent
 (require 'ob-clojure)
 (setq org-babel-clojure-backend 'cider)
@@ -54,38 +68,15 @@ curl "https://adventofcode.com/2024/" -s -X GET -H "Cookie: session=${session}" 
 ,#+end_src
 ,#+html:</details>"
     (read-string "part 1 or 2: "))))
+
+(cider-jack-in nil)
 #+END_SRC
 
 #+begin_src clojure :results silent
 (ns user
-  (:require [clojure.java.shell :as shell]
-            [clojure.string :as string]
-            [babashka.fs :as fs]))
+  (:require [clojure.string :as string]
+            [lib.aoc :refer [get-input]]))
 #+end_src
-
-#+begin_src clojure :results silent
-(defn get-input [day]
-  ;; ~/.cache/aoc
-  (let [year 2024
-        cache-file (fs/file (fs/xdg-cache-home) (format "aoc/%s/%s.txt" year day))
-        ;; https://github.com/wimglenn/advent-of-code-wim/issues/1
-        session (string/trim (:out (shell/sh "bash" "-i" "-c" "echo $AOC_SESSION")))]
-    (fs/create-dirs (fs/parent cache-file))
-    ;; (fs/delete cache-file)
-    (when-not (fs/exists? cache-file)
-      (spit (str (fs/strip-ext cache-file) "_example.txt")
-            (->> (format "curl 'https://adventofcode.com/%s/day/%s' | pup ':contains(\"example\") + pre > code text{}'" year day)
-                 (shell/sh "sh" "-c")
-                 (:out)))
-
-      (spit cache-file
-            (:out (shell/sh
-                   "curl" (format "https://adventofcode.com/%s/day/%s/input" year day)
-                   "-X" "GET"
-                   "-H" (format "Cookie: session=%s" session)))))
-    (slurp cache-file)))
-#+end_src
-#+html:</details>
 
 *** Day 1: [[https://adventofcode.com/2024/day/1][Historian Hysteria]]
 
