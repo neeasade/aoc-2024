@@ -1185,7 +1185,79 @@ math instead?
 (let [grid (grid/parse (get-input "16_example"))
       start (first (grid/points grid (= \S (grid/look g [x y]))))]
 
-  (loop [looking-at [[start []]]
+  (->>
+   (loop [path [start]
+          to-check (into [] (grid/neighbors grid start 2468 \.))
+          times 500
+          ]
+     (prn path "-" to-check)
+
+     (if (zero? times)
+       path
+       (if (empty? to-check)
+         path
+         (let [at (peek to-check)
+               looking-at (grid/look grid at)]
+           (if (= looking-at \E)
+             path
+             (recur (conj path at)
+                    (->> (grid/neighbors grid at 2468 \.)
+                         (remove (set path))
+                         (apply conj (pop to-check)))
+                    (dec times))
+             )
+           ))
+       )
+     ;; (grid/look )
+
+
+     )
+
+   (grid/gupdate grid (constantly \+))
+   (grid/gprint))
+
+  )
+
+
+
+#_(loop [
+         ;; at start
+         path []
+         to-check [start]
+         times 500]
+
+    (if (zero? times)
+      nil
+      (if (empty? to-check)
+        path
+
+        (let [at (peek to-check)]
+          ;; (run! clojure.pprint/pprint ["path" path "check" to-check "at" at])
+          (println "--")
+          ;; (grid/gprint (grid/gupdate grid (constantly \+) path))
+          (if (grid/look grid at \E)
+            path
+            (recur (conj path
+                         at
+                         ;; (peek to-check)
+                         )
+
+
+                   (apply conj (pop to-check)
+                          (->> (grid/neighbors grid at 2468 \.)
+                               (remove (set path))))
+                   (dec times)
+                   ))))))
+
+
+
+
+
+
+
+
+
+#_(loop [looking-at [[start []]]
          visited #{}]
     (when (peek looking-at)
       (let [[pos path] (peek looking-at)]
@@ -1198,8 +1270,7 @@ math instead?
                              (map (fn [new] [new (conj path pos)]))))
                  (conj visited pos)))))
 
-    ))
-;; in progress
+    )
 #+end_src
 #+html:</details>
 
@@ -1423,4 +1494,81 @@ math instead?
 #+RESULTS:
 : ej,hm,ks,ms,ns,rb,rq,sc,so,un,vb,vd,wd
 
+#+html:</details>
+
+*** Day 24
+
+#+html:<details><summary>Part 1</summary>
+#+begin_src clojure
+
+(let [[registers ops] (string/split (get-input "24_example") #"\n\n")
+      ;; (string/split-lines registers)
+
+      ;; [:z00 [:x00 :y00 bit-and]]
+      ops (->> (string/split-lines ops)
+               (map (partial re-seq #"[^ ]+"))
+               (map (fn [[arg1 op arg2 _ dest]]
+                      [(keyword dest)
+                       [(keyword arg1)
+                        (keyword arg2)
+                        (condp = op
+                          "AND" bit-and
+                          "OR" bit-or
+                          "XOR" bit-xor)]])))
+
+      registers (->> registers
+                     (string/split-lines)
+                     (map #(string/split % #": "))
+                     (map (fn [[k v]]
+                            {(keyword k)
+                             (parse-long v)}))
+                     (into {}))
+
+      unknown (->> ops
+                   ;; [:z00 [:x00 :y00 bit-and]]
+                   (mapcat (fn [[dest [a1 a2 _]]] [dest a1 a2]))
+                   (distinct)
+                   (remove (set (keys registers)))
+                   (map (fn [register] {register nil}))
+                   (into {}))
+
+      registers (merge unknown registers)
+
+      ]
+  (loop [registers registers
+         ops ops
+         ]
+    (if (empty? ops)
+      registers
+      (let [chosen-op (->> ops
+                           (filter (fn [[dest [a1 a2 _]]]
+                                     (and (get registers a1)
+                                          (get registers a2))))
+                           first)
+            [dest [a1 a2 op]] chosen-op]
+        (recur (assoc registers dest (op (get registers a1)
+                                         (get registers a2)))
+               (remove #(= % chosen-op) ops)))))
+
+
+
+  )
+
+{:x00 1, :x01 1, :x02 1, :y00 0, :y01 1, :y02 0}
+
+{:y00 0
+ :y01 1
+ :x00 nil
+ }
+
+[
+ ;; x00 AND y00 -> z00
+ ;; (bit-or 0 1)
+ ;; (bit-xor 1 0)
+
+
+ ]
+
+;; in progress
+#+end_src
 #+html:</details>
