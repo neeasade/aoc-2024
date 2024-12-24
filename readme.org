@@ -18,13 +18,13 @@ curl "https://adventofcode.com/2024/" -s -X GET -H "Cookie: session=${session}" 
 .---': ~ '(~), ~|        | >@>O< o-_/.()__------|   3 **
 |@..@'. ~ " ' ~ |        |>O>o<@< \____       .'|   4 **
 |_.~._#'.. ~ ~ *|        | _| |_    ..\_\_ ..'* |   5 *
-| ||| #@ #'''...|        |...     .'  '.'''../..|   6 **
-|#~~~@@ @@ #    |        |/\ ''.  |    |   -/  :|   7 **
+| ||| @## '''...|        |...     .'  '.'''../..|   6 **
+|@~~~#@@# @ #@ @|        |/\ ''.  |    |   -/  :|   7 **
 |~~..--. _____  |        |* /~\ '.|    | - /  .'|   8 *
 '---'  |        |        |        |    |        |   9
        |------- |        |   /\ .'|    |'''~~~~~|  10 **
-       |.......||        |/\ ..'  |    |.. .   ~|  11 *
-       |        |        |        |    |        |  12
+       |.......||        |/\ ..'  |    |   .    |  11 *
+       |  -  -  |        |''':::::|    |  . ' . |  12 *
        |        |        |        |    |        |  13
        |...'..''|        |.  :::::|    |..|\..''|  14 *
        |.  ''.  |        |.  :::::|    |──┬┴┴┴┬─|  15 *
@@ -807,82 +807,25 @@ math instead?
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
-;; in progress
-;; I think shoving zipper in here is not the move
-
+;; note: initially tried to shove zipper in here, not the move
 (require '[clojure.set :as set])
-(require '[clojure.zip :as zip])
+(require '[lib.grid :as grid])
 
-
-;; zipper creation args
-;; ::: branch? children make-node root
-(def grid (string/split-lines (get-input "12")))
-
-(defn look [[x y]] (-> grid (nth y []) (nth x nil)))
-
-(defn neighbors [coord]
-  (for [dir [[0 1] [1 0] [0 -1] [-1 0]]]
-    (mapv + coord dir)))
-
-(defn region-zipper [coord]
-  (let [char (look coord)]
-    (zip/zipper
-     ;; branch? is a fn that, given a node, returns true if can have children, even if it currently doesn't.
-     (fn [[coord parents]]
-       (and coord
-            (seq (set/difference (set (neighbors coord)) parents))
-            (= char (look coord))))
-     ;; children is a fn that, given a branch node, returns a seq of its children.
-     (fn [[coord parents]]
-       ;; (map #(list % (conj parents coord) ) (neighbors coord))
-       (let [children (->> (neighbors coord)
-                           (remove parents)
-                           (filter #(= char (look %))))
-             more (map (fn [child]
-                         [child (apply conj parents coord
-                                       (remove #(= % child) children))])
-                       children)
-             ]
-         ;; println
-         ;; format "children: [%s -> %s]" coord
-         ;; (map pr-str (map first more))
-         (prn coord more)
-         more
-
-         ))
-     ;; make-node is a fn that, given an existing node and a seq of children, returns a new branch node with the supplied children.
-     (fn [node _]
-       node
-       #_(let [[coord seen] node]
-           [coord seen]
-           ;; [coord (apply set/union seen (map second children) )]
-           ))
-     ;; root is the root node.
-     [coord #{}])))
-
-(->
- (region-zipper [42 78])
- (zip/next)
- ;; (zip/down)
- ;; (zip/node) ;; ([42 79] #{[42 78]})
- (zip/children)
- )
-
-(defn read-region [coord]
-  (println (format "Reading region %s " coord) )
-  (->> (region-zipper coord)
-       ;; (region-zipper [42 78])
-       (iterate zip/next)
-       (take-while #(not (zip/end? %))) ;; Zipper's "end of iteration" condition.
-       (map zip/node)
-       (keep first)
-       (set)
-       ;; (count)
-       )
-  #_(println (format "Reading region %s ...***" coord) ))
+(defn read-region [grid coord]
+  (let [char (grid/look grid coord)]
+    (loop [seen #{}
+           to-check [coord]]
+      (if (empty? to-check)
+        seen
+        (let [at (peek to-check)]
+          (recur (conj seen at)
+                 (->> (grid/neighbors grid at 2468 char)
+                      (remove seen)
+                      (apply conj (pop to-check)))))))))
 
 (defn perimeter [points]
   ;; claude gave me a logic pointer here
+  ;; todo: grid-library this
   (->> points
        (map (fn [point]
               (apply + (for [dir [[0 1] [0 -1] [1 0] [-1 0]]]
@@ -894,25 +837,66 @@ math instead?
   (* (count r)
      (perimeter r)))
 
-;; lazy
-(->> (loop [points (set (for [x (range (count (first grid)))
-                              y (range (count grid))]
-                          [x y]))
-            regions []]
-       (if (empty? points)
-         regions
-         (let [new-region (read-region (first points))]
-           (prn (count points) (first points) new-region)
-           (recur (set/difference points new-region)
-                  (conj regions new-region)))))
-     (map score-region)
-     (reduce +)
-     ;; (count)
-     )
+(let [grid (grid/parse (get-input "12"))]
+  (->> (loop [points (set (grid/points grid))
+              regions []]
+         (if (empty? points)
+           regions
+           (let [new-region (read-region grid (first points))]
+             ;; (prn (count points) (first points) new-region)
+             (recur (set/difference points new-region)
+                    (conj regions new-region)))))
+       (map score-region)
+       (reduce +)))
+#+end_src
 
-(read-region [0 0 ])
+#+RESULTS:
+: 1402544
 
-1373
+#+html:</details>
+
+#+html:<details><summary>Part 2</summary>
+#+begin_src clojure
+;; in progress
+(require '[clojure.set :as set])
+(require '[lib.grid :as grid])
+
+(defn read-region [grid coord]
+  (let [char (grid/look grid coord)]
+    (loop [seen #{}
+           to-check [coord]]
+      (if (empty? to-check)
+        seen
+        (let [at (peek to-check)]
+          (recur (conj seen at)
+                 (->> (grid/neighbors grid at 2468 char)
+                      (remove seen)
+                      (apply conj (pop to-check)))))))))
+
+(defn sides [points]
+  ;; todo
+  )
+
+;; 8
+(sides (read-region (grid/parse (get-input "12_example")) [2 1]))
+
+(defn score-region [r]
+  (* (count r)
+     (sides r)))
+
+;; looking for price: 80
+(let [grid (grid/parse (get-input "12_example"))]
+  (->> (loop [points (set (grid/points grid))
+              regions []]
+         (if (empty? points)
+           regions
+           (let [new-region (read-region grid (first points))]
+             ;; (prn (count points) (first points) new-region)
+             (recur (set/difference points new-region)
+                    (conj regions new-region)))))
+       (map score-region)
+       (reduce +)))
+
 #+end_src
 #+html:</details>
 
@@ -1409,6 +1393,10 @@ math instead?
        (distinct)
        (count)))
 #+end_src
+
+#+RESULTS:
+: 1110
+
 #+html:</details>
 
 #+html:<details><summary>Part 2</summary>
@@ -1440,4 +1428,8 @@ math instead?
        (sort)
        (string/join ",")))
 #+end_src
+
+#+RESULTS:
+: ej,hm,ks,ms,ns,rb,rq,sc,so,un,vb,vd,wd
+
 #+html:</details>
