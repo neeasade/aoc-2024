@@ -1558,3 +1558,147 @@ math instead?
   (Long/parseLong binary-string 2))
 #+end_src
 #+html:</details>
+
+#+html:<details><summary>Part 2</summary>
+
+#+begin_src clojure
+(require '[clojure.math.combinatorics :as combo])
+
+(defn parse [input-name]
+  (let [[registers wires] (string/split (get-input input-name) #"\n\n")
+        ;; create [:z00 [:x00 :y00 bit-and]]
+        wires (->> (string/split-lines wires)
+                   (map (partial re-seq #"[^ ]+"))
+                   (map (fn [[arg1 op arg2 _ dest]]
+                          [(keyword dest)
+                           [(keyword arg1)
+                            (keyword arg2)
+                            (condp = op
+                              "AND" bit-and
+                              "OR" bit-or
+                              "XOR" bit-xor)]])))
+
+        registers (->> registers
+                       (string/split-lines)
+                       (map #(string/split % #": "))
+                       (map (fn [[k v]]
+                              {(keyword k)
+                               (parse-long v)}))
+                       (into {}))
+
+        unknown (->> wires
+                     ;; [:z00 [:x00 :y00 bit-and]]
+                     (mapcat (fn [[dest [a1 a2 _]]] [dest a1 a2]))
+                     (distinct)
+                     (remove (set (keys registers)))
+                     (map (fn [register] {register nil}))
+                     (into {}))
+
+        registers (merge unknown registers)]
+    [registers wires]))
+
+(defn process-wires [registers wires]
+  (loop [registers registers
+         wires wires]
+    (if (empty? wires)
+      registers
+      (let [chosen-op (->> wires
+                           (filter (fn [[_ [a1 a2 _]]]
+                                     (and (get registers a1)
+                                          (get registers a2))))
+                           first)
+            [dest [a1 a2 op]] chosen-op]
+        (recur (assoc registers dest (op (get registers a1)
+                                         (get registers a2)))
+               (remove #(= % chosen-op) wires))))))
+
+(defn get-num [prefix registers]
+  (Long/parseLong
+   (->> registers
+        (filter (fn [[k v]]
+                  (string/starts-with? (name k) prefix)))
+        (sort-by first)
+        (reverse)
+        (map second)
+        (apply str))
+   2))
+
+(defn valid? [registers]
+  (= (get-num "z" registers)
+     (bit-and (get-num "x" registers)
+              (get-num "y" registers))))
+
+(defn switch [wires swaps]
+  ;; pain. should've made wires a map
+  (reduce
+   (fn [acc [a b]]
+     (map (fn [wire]
+            (condp = (first wire)
+              a [a (second (first (filter (fn [[dest & _]] (= dest b)) wires)))]
+              b [b (second (first (filter (fn [[dest & _]] (= dest a)) wires)))]
+              wire))
+          acc))
+   wires swaps))
+
+(let [[registers wires] (parse "24_big")
+      ;; wires (switch wires [[:z00 :z02]])
+      swaps (as-> wires it
+              (map first it)
+              (combo/combinations it 8)
+              (mapcat (fn [to-swap]
+                        (map (partial partition 2)
+                             (combo/permutations to-swap))) it))]
+
+  (reduce (fn [acc to-swap]
+            (prn to-swap)
+            (prn wires)
+            (prn (switch wires to-swap))
+            (prn "---")
+            (if (valid? (process-wires registers (switch wires to-swap)))
+              (reduced to-swap)
+              acc))
+          registers
+          swaps)
+
+  ;; (switch wires (first swaps))
+
+  ;; (get-num "z" (process-wires registers wires))
+  ;; wires
+  )
+
+(first
+ (combo/subsets
+  (map set (combo/combinations [0 1 3 4 5 6 7 8] 2))
+
+  ;; :min 4
+  ;; :max 4
+  )
+
+
+ )
+
+(combo/combinations  2)
+
+[0 1]
+[3 4]
+[5 6]
+[7 8]
+
+
+(map (partial partition 2)
+     (combo/permutations (range 8)))
+
+(map set )
+
+
+(->>
+ (combo/subsets (range 8))
+ (filter (fn [s] (= 8 (count s))))
+ )
+
+((0 1) (0 2) (0 3) (1 2) (1 3) (2 3))
+
+
+
+#+end_src
+#+html:</details>
