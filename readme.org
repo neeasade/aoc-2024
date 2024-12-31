@@ -1501,11 +1501,24 @@ math instead?
 
 #+html:<details><summary>Part 1</summary>
 #+begin_src clojure
+;; an "op" is eg [:z00 [:x00 :y00 bit-and]]
+(defn process-ops [registers ops]
+  (loop [registers registers
+         ops ops]
+    (if (empty? ops)
+      registers
+      (let [chosen-op (->> ops
+                           (filter (fn [[_ [a1 a2 _]]]
+                                     (and (get registers a1)
+                                          (get registers a2))))
+                           first)
+            [dest [a1 a2 op]] chosen-op]
+        (recur (assoc registers dest (op (get registers a1)
+                                         (get registers a2)))
+               (remove #(= % chosen-op) ops))))))
 
-(let [[registers ops] (string/split (get-input "24_example") #"\n\n")
-      ;; (string/split-lines registers)
-
-      ;; [:z00 [:x00 :y00 bit-and]]
+(let [[registers ops] (string/split (get-input "24") #"\n\n")
+      ;; create [:z00 [:x00 :y00 bit-and]]
       ops (->> (string/split-lines ops)
                (map (partial re-seq #"[^ ]+"))
                (map (fn [[arg1 op arg2 _ dest]]
@@ -1535,41 +1548,13 @@ math instead?
 
       registers (merge unknown registers)
 
-      ]
-  (loop [registers registers
-         ops ops
-         ]
-    (if (empty? ops)
-      registers
-      (let [chosen-op (->> ops
-                           (filter (fn [[dest [a1 a2 _]]]
-                                     (and (get registers a1)
-                                          (get registers a2))))
-                           first)
-            [dest [a1 a2 op]] chosen-op]
-        (recur (assoc registers dest (op (get registers a1)
-                                         (get registers a2)))
-               (remove #(= % chosen-op) ops)))))
-
-
-
-  )
-
-{:x00 1, :x01 1, :x02 1, :y00 0, :y01 1, :y02 0}
-
-{:y00 0
- :y01 1
- :x00 nil
- }
-
-[
- ;; x00 AND y00 -> z00
- ;; (bit-or 0 1)
- ;; (bit-xor 1 0)
-
-
- ]
-
-;; in progress
+      binary-string (->> (process-ops registers ops)
+                         (filter (fn [[k v]]
+                                   (string/starts-with? (name k) "z")))
+                         (sort-by first)
+                         (reverse)
+                         (map second)
+                         (apply str))]
+  (Long/parseLong binary-string 2))
 #+end_src
 #+html:</details>
