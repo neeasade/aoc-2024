@@ -294,6 +294,51 @@ Bonus: uiua
 
 #+html:</details>
 
+#+html:<details><summary>Part 2</summary>
+#+begin_src clojure
+(defn swap-vals [a b coll]
+  (let [ai (.indexOf coll a)
+        bi (.indexOf coll b)]
+    (-> coll
+        (update ai (constantly b))
+        (update bi (constantly a)))))
+
+(let [[rules manuals] (string/split (get-input "5") #"\n\n")
+      middle (fn [v] (nth v (quot (count v) 2)))
+      rules (map (fn [rule]
+                   (let [[a b] (mapv parse-long (re-seq #"[0-9]+" rule))]
+                     [[a b]
+                      ;; check if matches
+                      (fn [manual]
+                        (< (.indexOf manual a)
+                           (.indexOf manual b)))]))
+                 (string/split-lines rules))
+      passes-rule? (fn [manual [[a b] check]]
+                     (if (and ((set manual) a)
+                              ((set manual) b))
+                       (check manual)
+                       true))
+      manual-good? (fn [manual] (every? #(passes-rule? manual %) rules))]
+
+  (->> (string/split-lines manuals)
+       (map #(mapv parse-long (string/split % #",")))
+       (remove manual-good?)
+       (map (fn [manual]
+              (loop [manual manual]
+                (if (manual-good? manual)
+                  manual
+                  (let [bad-rule (first (filter (complement (partial passes-rule? manual)) rules))
+                        [[a b] _] bad-rule]
+                    (recur (swap-vals a b manual)))))))
+       (map middle)
+       (reduce +)))
+#+end_src
+
+#+RESULTS:
+: 4743
+
+#+html:</details>
+
 *** Day 6: [[https://adventofcode.com/2024/day/6][Guard Gallivant]]
 
 #+html:<details><summary>Part 1</summary>
