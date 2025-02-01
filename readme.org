@@ -539,85 +539,39 @@ math instead?
 
 #+html:<details><summary>Part 2</summary>
 #+begin_src clojure
-;; in progress
 (require '[clojure.math.combinatorics :as combo])
+(require '[lib.grid :as grid])
 
-(defn antinodes-out [coords direction times]
-  (if (or (some neg? (first coords))
-          (zero? times))
-    coords
-    (let [[[x2 y2] [x1 y1] & _] coords
-          distance (Math/round
-                    (Math/sqrt (+ (* (- x2 x1) (- x2 x1))
-                                  (* (- y2 y1) (- y2 y1)))))]
-      ;; port of https://stackoverflow.com/a/7741655
-      (recur
-       (vec (concat
-             [[(long (direction (if (= direction +) x2 x1) (* distance (/ (- x2 x1) distance))))
-               (long (direction (if (= direction) y2 y1) (* distance (/ (- y2 y1) distance))))]]
-             coords))
-       direction
-       (dec times)))))
-
-(defn antinodes-out-new [coords direction times]
-  (if (or (some neg? (first coords))
-          (zero? times))
-    coords
-    (let [[two one & _] coords]
-      ;; port of https://stackoverflow.com/a/7741655
-      (recur
-       (vec (concat [(map direction (map - one two) two)]
-                    coords
-                    ))
-       #_(vec (concat
-               [[(long (direction (if (= direction +) x2 x1) (* distance (/ (- x2 x1) distance))))
-                 (long (direction (if (= direction) y2 y1) (* distance (/ (- y2 y1) distance))))]]
-               coords))
-       direction
-       (dec times)))))
-
-(let [input (string/split-lines (get-input "8_example"))
-      w (count (first input))
-      h (count input)
-      look (fn [[x y]] (-> input (get y []) (get x nil)))
-      within? (fn [[x y]] (and (<= 0 x (dec w)) (<= 0 y (dec h))))
-      antinodes (fn [coords]
-                  (concat
-                   (antinodes-out-new coords + 90)
-                   (antinodes-out-new coords - 90)))
-      antennae (atom {})
-      ;; oof
-      _ (doseq [x (range w)
-                y (range h)
-                :when (not (or (= (look [x y]) \.)
-                               (= (look [x y]) \#)))]
-          (swap! antennae update (look [x y]) #(conj % [x y])))]
-
-  (->> @antennae
-       (mapcat (fn [[_ coords]]
-                 (->> (combo/combinations coords 2)
-                      (mapcat (fn [coords] (filter within? (antinodes coords)))))))
+(let [g (grid/parse (get-input "8"))
+      antennae (->> (grid/points g (not (= \. (grid/look g [x y]))))
+                    (group-by (fn [[x y]] (grid/look g [x y]))))
+      pairs (mapcat (fn [[_ coords]]
+                      (combo/combinations coords 2))
+                    antennae)]
+  (->> pairs
+       (mapcat (fn [pair]
+                 (let [diff (apply map - pair)]
+                   ;; branch out both directions, concat
+                   (concat
+                    (loop [results #{}
+                           place (first pair)]
+                      (if-not (grid/within? g place)
+                        results
+                        (recur (conj results place)
+                               (map - place diff))))
+                    (loop [results #{}
+                           place (first pair)]
+                      (if-not (grid/within? g place)
+                        results
+                        (recur (conj results place)
+                               (map + place diff))))))))
        (set)
-
-       ;; (count)
-
-       ;; debug print
-       (reduce (fn [grid anti-coord] (update-in grid (reverse anti-coord) (constantly \#)))
-               (mapv (comp vec seq) input))
-       (map (partial apply str))
-       (string/join "\n")
-       (println)
-
-       )
-
-  (println "-")
-  )
-
-;; 1161 - too low
-
-
-;; 734 - too low
+       (count)))
 #+end_src
+
+#+RESULTS:
+: 1169
+
 #+html:</details>
 
 *** Day 9: [[https://adventofcode.com/2024/day/9][Disk Fragmenter]]
@@ -1602,6 +1556,10 @@ math instead?
                          (apply str))]
   (Long/parseLong binary-string 2))
 #+end_src
+
+#+RESULTS:
+: 53258032898766
+
 #+html:</details>
 
 #+html:<details><summary>Part 2</summary>
